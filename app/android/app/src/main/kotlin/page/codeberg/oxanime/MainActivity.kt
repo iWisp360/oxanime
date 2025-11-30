@@ -1,4 +1,4 @@
-package com.example.app
+package page.codeberg.oxanime
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -4,22 +4,16 @@ import "package:flutter/foundation.dart";
 import "package:logger/logger.dart";
 import "package:path_provider/path_provider.dart";
 
-final logFile = File(
-  (getApplicationCacheDirectory().toString()) + ("oxanime.log"),
-);
-final logger = _OxAnimeLogger();
-
-class _OxAnimeLogger {
+class OxAnimeLogger {
   // ignore: unused_field
-  static Logger _logger = _makeLogger(Level.all);
-
-  static Logger _makeLogger(Level? level) {
+  static Future<Logger> makeLogger() async {
+    final logFile = await _getLogsFile();
     final filter = kDebugMode ? DevelopmentFilter() : ProductionFilter();
-    if (logFile.existsSync() == true) {
-      logFile.deleteSync();
+    if (await logFile.exists() == true) {
+      await logFile.delete();
     }
-    return _logger = Logger(
-      level: level,
+    return Logger(
+      level: Level.all,
       filter: filter,
       printer: PrettyPrinter(
         colors: kDebugMode ? true : false,
@@ -27,7 +21,20 @@ class _OxAnimeLogger {
         methodCount: 48,
         errorMethodCount: 48,
       ),
-      output: FileOutput(file: logFile),
+      output: await _getLogOutput(),
     );
   }
+}
+
+Future<File> _getLogsFile() async {
+  final logFile = File(
+    await (getApplicationCacheDirectory().then((value) => value.path)) +
+        ("/oxanime.log"),
+  );
+  return logFile;
+}
+
+Future<FileOutput> _getLogOutput() async {
+  final logFile = await _getLogsFile();
+  return FileOutput(file: logFile);
 }
