@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import "package:oxanime/utilities/logs_manager.dart";
-import "package:logger/logger.dart";
+import "package:oxanime/utilities/logs.dart";
+import "package:oxanime/utilities/sources.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
-Logger logger = Logger();
-final preferences = SharedPreferencesAsync();
-
 void main() async {
+  await OxAnimeLoggerSingleton().createLogger();
   WidgetsFlutterBinding.ensureInitialized();
   try {
     logger.i("Logging to file");
@@ -19,7 +17,12 @@ void main() async {
     logger.i("Disabling Logs");
     logger.close();
   }
+
+  // ignore: unused_local_variable
+  var sources = await SourceParser().getSources();
 }
+
+final preferences = SharedPreferencesAsync();
 
 // class OxAnimeMainApp extends StatelessWidget {
 //   const OxAnimeMainApp({Key? key}) : super(key: key);

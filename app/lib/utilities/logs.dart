@@ -1,11 +1,21 @@
 import "dart:io";
-
 import "package:flutter/foundation.dart";
 import "package:logger/logger.dart";
 import "package:path_provider/path_provider.dart";
 
+Logger logger = Logger();
+
+class OxAnimeLoggerSingleton {
+  OxAnimeLoggerSingleton._();
+  static final OxAnimeLoggerSingleton _singleton = OxAnimeLoggerSingleton._();
+
+  factory OxAnimeLoggerSingleton() => _singleton;
+  Future createLogger() async {
+    logger = await OxAnimeLogger.makeLogger();
+  }
+}
+
 class OxAnimeLogger {
-  // ignore: unused_field
   static Future<Logger> makeLogger() async {
     final logFile = await _getLogsFile();
     final filter = kDebugMode ? DevelopmentFilter() : ProductionFilter();
