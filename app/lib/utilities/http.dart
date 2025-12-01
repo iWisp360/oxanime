@@ -7,7 +7,7 @@ class SourceHtmlParser {
   late final Document serializedHtml;
 
   SourceHtmlParser._({required this.html});
-  
+
   /// fields such as name and description can be obtained from the value of a tag matching a css class
   Future<String?> getSerieCSSClassText(
     final String serieCSSClass,
@@ -34,7 +34,7 @@ class SourceHtmlParser {
 
   // serialize the response body from a URL into a global variable
   Future<void> _initializeSerializedHtml() async {
-    serializedHtml = await SourceConnection().parseHtml(html);
+    serializedHtml = await SourceConnection.parseHtml(html);
   }
 
   /// This creates a parser from the deserialized html that can get values from the serialized html

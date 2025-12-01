@@ -1,5 +1,3 @@
-// WIP Shorten this
-
 import "dart:io";
 import "package:flutter/foundation.dart";
 import "package:logger/logger.dart";
@@ -7,20 +5,9 @@ import "package:path_provider/path_provider.dart";
 
 Logger logger = Logger();
 
-// is this necessary?
-class LoggerSingleton {
-  LoggerSingleton._();
-  static final LoggerSingleton _singleton = LoggerSingleton._();
-
-  factory LoggerSingleton() => _singleton;
-  Future createLogger() async {
-    logger = await OxAnimeLogger.makeLogger();
-  }
-}
-
 class OxAnimeLogger {
   static Future<Logger> makeLogger() async {
-    final logFile = await _getLogsFile();
+    final logFile = await _getLogFile();
     final filter = kDebugMode ? DevelopmentFilter() : ProductionFilter();
     if (await logFile.exists() == true) {
       await logFile.delete();
@@ -39,15 +26,14 @@ class OxAnimeLogger {
   }
 }
 
-Future<File> _getLogsFile() async {
+Future<File> _getLogFile() async {
   final logFile = File(
-    await (getApplicationCacheDirectory().then((value) => value.path)) +
-        ("/oxanime.log"),
+    await (getApplicationCacheDirectory().then((value) => value.path)) + ("/oxanime.log"),
   );
   return logFile;
 }
 
 Future<FileOutput> _getLogOutput() async {
-  final logFile = await _getLogsFile();
+  final logFile = await _getLogFile();
   return FileOutput(file: logFile);
 }

@@ -4,11 +4,10 @@ import "package:http/http.dart" as http;
 import "package:oxanime/utilities/logs.dart";
 
 class SourceConnection {
-  // rename to getBodyFrom
-  Future<String?> get(String url) async {
+  Future<String?> getBodyFrom(String url) async {
     final pageUrl = Uri.parse(url);
     try {
-      logger.d("Executing HTTP GET to URL $url");
+      logger.d("Executing HTTP GET request to URL $url");
       var response = await http.get(pageUrl);
       return response.body;
     } catch (e) {
@@ -17,7 +16,7 @@ class SourceConnection {
     }
   }
 
-  Future<Document> parseHtml(String response) async {
+  static Future<Document> parseHtml(String response) async {
     return parse(response);
   }
 }

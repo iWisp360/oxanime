@@ -2,12 +2,15 @@ import "dart:convert";
 import "dart:io";
 
 import "package:json_annotation/json_annotation.dart";
+import "package:oxanime/utilities/files.dart";
 import "package:oxanime/utilities/http.dart";
 import "package:oxanime/utilities/logs.dart";
-import "package:path/path.dart" as path;
-import "package:path_provider/path_provider.dart";
+import "package:uuid/uuid.dart";
+import "package:oxanime/utilities/series.dart";
 
 part "sources.g.dart";
+
+const sourcesFileName = "sources.json";
 
 late List<Source> sources;
 
@@ -37,8 +40,6 @@ class Source {
 
   Source({
     this.searchSerieNameExcludes,
-    this.searchSerieNameHasSplitPattern,
-    this.searchSerieNameSplitPattern,
     required this.searchSerieNameCSSClass,
     required this.searchSerieUrlCSSClass,
     required this.searchSerieImageCSSClass,
@@ -53,25 +54,9 @@ class Source {
     required this.uuid,
   });
 
-  factory Source.fromJson(Map<String, dynamic> json) => _$SourceFromJson(json);
+  // WIP: search series
 
-  /// This function should only be used at the startup of the program to serialize the sources.json file. Further access or modification is expected through global variable sources, which can be accessed by importing this module.
-  static Future<List<Source>> getSources() async {
-    final sourcesPath = await SourceFileManager().getSourcesPath();
-
-    try {
-      List<Source> sources = [];
-      final String fileContents = await SourceFileManager().readSourcesFile();
-      final serializedContents = jsonDecode(fileContents);
-      for (var source in serializedContents) {
-        sources.add(Source.fromJson(source));
-      }
-      return sources.where((source) => source.isUsable()).toList();
-    } catch (e) {
-      logger.e("Error while reading sources: $e");
-      rethrow;
-    }
-  }
+  factory Source.fromMap(Map<String, dynamic> json) => _$SourceFromJson(json);
 
   Future<Source?> getDuplicate(List<Source> sources) async {
     for (var source in sources) {
@@ -97,38 +82,32 @@ class Source {
   }
 
   bool isUsable() {
-    bool result = (enabled == true)
-        ? (uuid.isNotEmpty)
-              ? true
-              : false
-        : false;
+    bool result = (enabled == true) && (Uuid.isValidUUID(fromString: uuid));
     logger.i((result == false) ? "$name is not usable" : "$name is usable");
-    return false;
+    return result;
   }
 
-  /// push this Source to the sources.json file and the sources List
-  Future push(List<Source> localSources) async {
-    final sourcesPath = await SourceFileManager().getSourcesPath();
-    final serializedSource = toJson();
+  Future pushSource() async {
+    final sourcesPath = await _getSourcesPath();
+    final serializedSource = toMap();
 
-    try {  
-      final fileContents = await SourceFileManager().readSourcesFile();
+    try {
+      final fileContents = await File(await _getSourcesPath()).bufferedRead();
 
       List<Map<String, dynamic>> serializedSources = jsonDecode(fileContents);
-      final conflict = await getDuplicate(localSources);
+      final conflict = await getDuplicate(sources);
       if (conflict != null) {
         throw Exception(
           "Not adding $name with UUID $name as it is a duplicate of ${conflict.name} with UUID ${conflict.uuid}",
         );
       }
-      // add this source to the global sources List
+
       sources.add(this);
 
       serializedSources.add(serializedSource);
-      
+
       final deserializedSources = jsonEncode(serializedSources);
-      // WIP Use buffered writes. Implement function in SourceFileManager class
-      await File(sourcesPath).writeAsString(deserializedSources);
+      await File(sourcesPath).bufferedWrite(deserializedSources);
     } catch (e, s) {
       logger.e("Error while pushing source $name to $sourcesPath\n$s");
       rethrow;
@@ -136,36 +115,25 @@ class Source {
   }
 
   Map<String, dynamic> toMap() => _$SourceToJson(this);
-}
 
-class SourceFileManager {
-  Future<String> getSourcesPath() async {
-    String sourcesPath = path.join(
-/// This post explains the path where getApplicationSupportDirectory points to in Android:
-///
-/// https://stackoverflow.com/questions/73685676/difference-between-application-documents-directory-and-support-directory-in-path 
-/// 
-/// On linux, it should be located at ~/.local/share/page.codeberg.oxanime/
-      await getApplicationSupportDirectory().then((value) => value.path),
-      "sources.json",
-    );
-    logger.i("Sources are located at $sourcesPath");
-    return sourcesPath;
-  }
-
-  // use buffered read to improve performance
-  Future<String> readSourcesFile() async {
+  static Future<List<Source>> getSources() async {
     try {
-      final sourcesPath = await getSourcesPath();
-      final sourcesFile = File(sourcesPath);
-      final StringBuffer fileContents = StringBuffer();
-      await for (var chunk in utf8.decoder.bind(sourcesFile.openRead())) {
-        fileContents.write(chunk);
+      List<Source> sources = [];
+      final String fileContents = await File(await _getSourcesPath()).bufferedRead();
+      List<Map<String, dynamic>> serializedContents = jsonDecode(fileContents);
+      for (var source in serializedContents) {
+        sources.add(Source.fromMap(source));
       }
-      return fileContents.toString();
-    } catch (e) {
-      logger.e("Error while reading sources file: $e");
+      return sources.where((source) => source.isUsable()).toList();
+    } catch (e, s) {
+      logger.e("Error while reading sources: $e\n$s");
       rethrow;
     }
+  }
+
+  /// This function should only be used at the startup of the program to serialize the sources.json file.
+  /// Further access or modification is expected through global variable sources, which can be accessed by importing this module.
+  static Future<String> _getSourcesPath() async {
+    return await getDataDirectoryWithJoined("sources.json");
   }
 }
