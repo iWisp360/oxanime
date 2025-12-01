@@ -2,11 +2,14 @@ import "dart:convert";
 import "dart:io";
 
 import "package:json_annotation/json_annotation.dart";
+import "package:oxanime/utilities/http.dart";
 import "package:oxanime/utilities/logs.dart";
 import "package:path/path.dart" as path;
 import "package:path_provider/path_provider.dart";
 
 part "sources.g.dart";
+
+late List<Source> sources;
 
 @JsonSerializable()
 class Source {
@@ -17,7 +20,6 @@ class Source {
   String? searchSerieNameSplitPattern;
   List<String>? searchSerieNameExcludes;
   List<String>? searchSerieDescriptionExcludes;
-  List<String>? serieDescriptionCleanupExcludes;
   final String name;
   final String mainUrl;
   final String searchUrl;
@@ -45,42 +47,27 @@ class Source {
     required this.searchSerieChaptersCSSClass,
     required this.searchSerieDescriptionCSSClass,
     this.searchSerieDescriptionExcludes,
-    this.serieDescriptionCleanupExcludes,
     this.enabled = false,
     required this.uuid,
   });
 
   factory Source.fromJson(Map<String, dynamic> json) => _$SourceFromJson(json);
+  Future<String?> getSerieDescription(final String responseBody) async {
+    return await (await SourceHtmlParser.create(
+      html: responseBody,
+    )).getSerieCSSClassText(searchSerieDescriptionCSSClass, searchSerieDescriptionExcludes ?? []);
+  }
+
+  Future<String?> getSerieName(final String responseBody) async {
+    return await (await SourceHtmlParser.create(
+      html: responseBody,
+    )).getSerieCSSClassText(searchSerieNameCSSClass, searchSerieNameExcludes ?? []);
+  }
+
   Map<String, dynamic> toJson() => _$SourceToJson(this);
 }
 
-class SourceParser {
-  Future pushSource(Source source) async {
-    try {
-      final serializedSource = source.toJson();
-      final fileContents = await readSourcesFile();
-      List<Map<String, dynamic>> serializedSources = jsonDecode(fileContents);
-      serializedSources.add(serializedSource);
-      final deserializedSources = jsonEncode(serializedSources);
-      await File(await getSourcesPath()).writeAsString(deserializedSources);
-    } catch (e, s) {
-      logger.e(
-        "Error while pushing source ${source.name} to ${await getSourcesPath()}\n$s",
-      );
-      rethrow;
-    }
-  }
-
-  Future<String> readSourcesFile() async {
-    final sourcesPath = await getSourcesPath();
-    final sourcesFile = File(sourcesPath);
-    final StringBuffer fileContents = StringBuffer();
-    await for (var chunk in utf8.decoder.bind(sourcesFile.openRead())) {
-      fileContents.write(chunk);
-    }
-    return fileContents.toString();
-  }
-
+class SourceManager {
   Future<List<Source>> getSources() async {
     final sourcesPath = await getSourcesPath();
 
@@ -115,5 +102,29 @@ class SourceParser {
       await getApplicationSupportDirectory().then((value) => value.path),
       "sources.json",
     );
+  }
+
+  Future pushSource(Source source) async {
+    try {
+      final serializedSource = source.toJson();
+      final fileContents = await readSourcesFile();
+      List<Map<String, dynamic>> serializedSources = jsonDecode(fileContents);
+      serializedSources.add(serializedSource);
+      final deserializedSources = jsonEncode(serializedSources);
+      await File(await getSourcesPath()).writeAsString(deserializedSources);
+    } catch (e, s) {
+      logger.e("Error while pushing source ${source.name} to ${await getSourcesPath()}\n$s");
+      rethrow;
+    }
+  }
+
+  Future<String> readSourcesFile() async {
+    final sourcesPath = await getSourcesPath();
+    final sourcesFile = File(sourcesPath);
+    final StringBuffer fileContents = StringBuffer();
+    await for (var chunk in utf8.decoder.bind(sourcesFile.openRead())) {
+      fileContents.write(chunk);
+    }
+    return fileContents.toString();
   }
 }

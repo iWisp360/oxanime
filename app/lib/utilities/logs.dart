@@ -5,11 +5,11 @@ import "package:path_provider/path_provider.dart";
 
 Logger logger = Logger();
 
-class OxAnimeLoggerSingleton {
-  OxAnimeLoggerSingleton._();
-  static final OxAnimeLoggerSingleton _singleton = OxAnimeLoggerSingleton._();
+class LoggerSingleton {
+  LoggerSingleton._();
+  static final LoggerSingleton _singleton = LoggerSingleton._();
 
-  factory OxAnimeLoggerSingleton() => _singleton;
+  factory LoggerSingleton() => _singleton;
   Future createLogger() async {
     logger = await OxAnimeLogger.makeLogger();
   }

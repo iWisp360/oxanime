@@ -30,10 +30,6 @@ Source _$SourceFromJson(Map<String, dynamic> json) {
         (json['searchSerieDescriptionExcludes'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList(),
-    serieDescriptionCleanupExcludes:
-        (json['serieDescriptionCleanupExcludes'] as List<dynamic>?)
-            ?.map((e) => e as String)
-            .toList(),
     enabled: json['enabled'] as bool? ?? false,
     uuid: json['uuid'] as String,
   );
@@ -45,7 +41,6 @@ Map<String, dynamic> _$SourceToJson(Source instance) => <String, dynamic>{
   'searchSerieNameSplitPattern': instance.searchSerieNameSplitPattern,
   'searchSerieNameExcludes': instance.searchSerieNameExcludes,
   'searchSerieDescriptionExcludes': instance.searchSerieDescriptionExcludes,
-  'serieDescriptionCleanupExcludes': instance.serieDescriptionCleanupExcludes,
   'name': instance.name,
   'mainUrl': instance.mainUrl,
   'searchUrl': instance.searchUrl,

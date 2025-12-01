@@ -1,10 +1,15 @@
-import 'package:flutter/material.dart';
+// Never gonna give you up
+
+import "package:flutter/material.dart";
+import "package:oxanime/utilities/http.dart";
 import "package:oxanime/utilities/logs.dart";
+import "package:oxanime/utilities/network.dart";
+import "package:oxanime/utilities/preferences.dart";
 import "package:oxanime/utilities/sources.dart";
-import "package:shared_preferences/shared_preferences.dart";
 
 void main() async {
-  await OxAnimeLoggerSingleton().createLogger();
+  await LoggerSingleton().createLogger();
+  sources = await SourceManager().getSources();
   WidgetsFlutterBinding.ensureInitialized();
   try {
     logger.i("Logging to file");
@@ -18,11 +23,12 @@ void main() async {
     logger.close();
   }
 
-  // ignore: unused_local_variable
-  var sources = await SourceParser().getSources();
-}
+  // UI should be initialized
+  // º
+  // here
 
-final preferences = SharedPreferencesAsync();
+  print(sources[0]);
+}
 
 // class OxAnimeMainApp extends StatelessWidget {
 //   const OxAnimeMainApp({Key? key}) : super(key: key);
