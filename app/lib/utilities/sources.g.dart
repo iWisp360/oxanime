@@ -9,18 +9,10 @@ part of 'sources.dart';
 Source _$SourceFromJson(Map<String, dynamic> json) {
   $checkKeys(json, disallowNullValues: const ['uuid']);
   return Source(
-    name: json['name'] as String? ?? "OxAnime Source",
     searchSerieNameExcludes: (json['searchSerieNameExcludes'] as List<dynamic>?)
         ?.map((e) => e as String)
         .toList(),
-    searchSerieUrlResultsAbsolute:
-        json['searchSerieUrlResultsAbsolute'] as bool? ?? false,
-    searchSerieNameHasSplitPattern:
-        json['searchSerieNameHasSplitPattern'] as bool? ?? false,
-    searchSerieNameSplitPattern: json['searchSerieNameSplitPattern'] as String?,
     searchSerieNameCSSClass: json['searchSerieNameCSSClass'] as String,
-    mainUrl: json['mainUrl'] as String,
-    searchUrl: json['searchUrl'] as String,
     searchSerieUrlCSSClass: json['searchSerieUrlCSSClass'] as String,
     searchSerieImageCSSClass: json['searchSerieImageCSSClass'] as String,
     searchSerieChaptersCSSClass: json['searchSerieChaptersCSSClass'] as String,
@@ -30,25 +22,28 @@ Source _$SourceFromJson(Map<String, dynamic> json) {
         (json['searchSerieDescriptionExcludes'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList(),
+    name: json['name'] as String? ?? "OxAnime Source",
+    mainUrl: json['mainUrl'] as String,
+    searchUrl: json['searchUrl'] as String,
+    searchSerieUrlResultsAbsolute:
+        json['searchSerieUrlResultsAbsolute'] as bool? ?? false,
     enabled: json['enabled'] as bool? ?? false,
     uuid: json['uuid'] as String,
   );
 }
 
 Map<String, dynamic> _$SourceToJson(Source instance) => <String, dynamic>{
-  'searchSerieUrlResultsAbsolute': instance.searchSerieUrlResultsAbsolute,
-  'searchSerieNameHasSplitPattern': instance.searchSerieNameHasSplitPattern,
-  'searchSerieNameSplitPattern': instance.searchSerieNameSplitPattern,
-  'searchSerieNameExcludes': instance.searchSerieNameExcludes,
-  'searchSerieDescriptionExcludes': instance.searchSerieDescriptionExcludes,
-  'name': instance.name,
-  'mainUrl': instance.mainUrl,
-  'searchUrl': instance.searchUrl,
   'searchSerieNameCSSClass': instance.searchSerieNameCSSClass,
+  'searchSerieNameExcludes': instance.searchSerieNameExcludes,
+  'searchSerieDescriptionCSSClass': instance.searchSerieDescriptionCSSClass,
+  'searchSerieDescriptionExcludes': instance.searchSerieDescriptionExcludes,
   'searchSerieUrlCSSClass': instance.searchSerieUrlCSSClass,
   'searchSerieImageCSSClass': instance.searchSerieImageCSSClass,
   'searchSerieChaptersCSSClass': instance.searchSerieChaptersCSSClass,
-  'searchSerieDescriptionCSSClass': instance.searchSerieDescriptionCSSClass,
+  'name': instance.name,
+  'mainUrl': instance.mainUrl,
+  'searchUrl': instance.searchUrl,
   'enabled': instance.enabled,
   'uuid': instance.uuid,
+  'searchSerieUrlResultsAbsolute': instance.searchSerieUrlResultsAbsolute,
 };

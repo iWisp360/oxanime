@@ -8,7 +8,7 @@ import "package:oxanime/utilities/preferences.dart";
 import "package:oxanime/utilities/sources.dart";
 
 void main() async {
-  await LoggerSingleton().createLogger();
+  logger = await OxAnimeLogger.makeLogger();
   sources = await Source.getSources();
   WidgetsFlutterBinding.ensureInitialized();
   try {
@@ -26,8 +26,6 @@ void main() async {
   // UI should be initialized
   // º
   // here
-
-  print(sources[0]);
 }
 
 // class OxAnimeMainApp extends StatelessWidget {
