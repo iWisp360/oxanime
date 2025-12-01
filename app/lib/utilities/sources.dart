@@ -11,7 +11,6 @@ part "sources.g.dart";
 
 late List<Source> sources;
 
-/// These are all the fields required to get data, such as series names, descriptions and chapters.
 @JsonSerializable()
 class Source {
   // serie name fields
@@ -74,11 +73,6 @@ class Source {
     }
   }
 
-  /// check if this source is a duplicate of any source found in the given List of sources
-  /// duplicates are found by:
-  /// - name
-  /// - name in mainUrl
-  /// - uuid
   Future<Source?> getDuplicate(List<Source> sources) async {
     for (var source in sources) {
       if (source.name.toLowerCase() == name.toLowerCase() ||
@@ -90,21 +84,18 @@ class Source {
     return null;
   }
 
-  /// get the description by getting the text of a given css class, and remove all words of the description that matches excludes
   Future<String?> getSerieDescription(final String responseBody) async {
     return await (await SourceHtmlParser.create(
       html: responseBody,
     )).getSerieCSSClassText(searchSerieDescriptionCSSClass, searchSerieDescriptionExcludes ?? []);
   }
 
-  /// get the name by getting the text of a given css class, and remove all words of the name that matches excludes
   Future<String?> getSerieName(final String responseBody) async {
     return await (await SourceHtmlParser.create(
       html: responseBody,
     )).getSerieCSSClassText(searchSerieNameCSSClass, searchSerieNameExcludes ?? []);
   }
 
-  /// A source should not be usable if its enabled field is set to false or its uuid is empty
   bool isUsable() {
     bool result = (enabled == true)
         ? (uuid.isNotEmpty)
@@ -118,14 +109,11 @@ class Source {
   /// push this Source to the sources.json file and the sources List
   Future push(List<Source> localSources) async {
     final sourcesPath = await SourceFileManager().getSourcesPath();
-    // this source is serialized
     final serializedSource = toJson();
 
     try {  
-      // read the sources.json file
       final fileContents = await SourceFileManager().readSourcesFile();
 
-      // serialize it into a Map
       List<Map<String, dynamic>> serializedSources = jsonDecode(fileContents);
       final conflict = await getDuplicate(localSources);
       if (conflict != null) {
@@ -135,26 +123,29 @@ class Source {
       }
       // add this source to the global sources List
       sources.add(this);
-      // add this sources as a Map to the serialized sources.json
+
       serializedSources.add(serializedSource);
       
       final deserializedSources = jsonEncode(serializedSources);
-      // WIP Use buffered writes
+      // WIP Use buffered writes. Implement function in SourceFileManager class
       await File(sourcesPath).writeAsString(deserializedSources);
     } catch (e, s) {
       logger.e("Error while pushing source $name to $sourcesPath\n$s");
       rethrow;
     }
   }
-  /// Transform this source into a Map that can be deserialized
-  Map<String, dynamic> toJson() => _$SourceToJson(this);
+
+  Map<String, dynamic> toMap() => _$SourceToJson(this);
 }
 
-/// get sources.json path located at directories such as
-/// $HOME/.local/share/page.codeberg.oxanime/ on Linux
 class SourceFileManager {
   Future<String> getSourcesPath() async {
     String sourcesPath = path.join(
+/// This post explains the path where getApplicationSupportDirectory points to in Android:
+///
+/// https://stackoverflow.com/questions/73685676/difference-between-application-documents-directory-and-support-directory-in-path 
+/// 
+/// On linux, it should be located at ~/.local/share/page.codeberg.oxanime/
       await getApplicationSupportDirectory().then((value) => value.path),
       "sources.json",
     );
@@ -162,7 +153,6 @@ class SourceFileManager {
     return sourcesPath;
   }
 
-  /// read sources.json
   // use buffered read to improve performance
   Future<String> readSourcesFile() async {
     try {
