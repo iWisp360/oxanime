@@ -11,7 +11,6 @@ import "package:oxanime/utilities/sources.dart";
 
 void main() async {
   sources = await Source.getSources();
-  logger = await OxAnimeLogger.makeLogger();
   WidgetsFlutterBinding.ensureInitialized();
   try {
     logger.i("Logging to file");
