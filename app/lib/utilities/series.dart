@@ -19,20 +19,33 @@ late final List<Serie> series;
 class Serie {
   final String name;
   final String url;
+  final String imageUrl;
   String? description;
-  List<Chapter> chapters;
+  List<Chapter>? chapters;
   final String sourceUUID;
   late final Source _source;
 
   Serie({
     required this.name,
     required this.url,
+    required this.imageUrl,
     this.description,
-    required this.chapters,
+    this.chapters,
     required this.sourceUUID,
   });
 
   factory Serie.fromMap(Map<String, dynamic> map) => _$SerieFromJson(map);
+
+  static Future<Serie> createSerie(SearchResult result) async {
+    var serie = Serie(
+      name: result.name,
+      url: result.mainUrl,
+      sourceUUID: result.sourceUUID,
+      imageUrl: result.imageUrl ?? "",
+    );
+    serie.assignSource();
+    return serie;
+  }
 
   Future<void> assignSource() async {
     for (var s in sources) {
@@ -45,6 +58,7 @@ class Serie {
   }
 
   Future<void> getChaptersRemote() async {
+    chapters ??= [];
     var sourceRequestDocument = await SourceConnection.parseHtml(
       await SourceConnection.getBodyFrom(url),
     );
@@ -57,10 +71,17 @@ class Serie {
     var chapterUrls = sourceRequestDocument
         .querySelectorAll(_source.searchSerieChaptersUrlsCSSClass)
         .map((e) => e.attributes[urlHtmlAttribute])
+        .map((e) {
+          if (_source.searchSerieUrlResultsAbsolute == false) {
+            if (e == null) return "";
+
+            return SourceConnection.makeUrlFromRelative(_source.mainUrl, e);
+          }
+        })
         .toList();
 
     for (int i = 0; i < chapterIdentifiers.length; i++) {
-      chapters.add(
+      chapters?.add(
         Chapter(
           identifier: chapterIdentifiers.elementAt(i),
           url: chapterUrls.elementAtOrNull(i) ?? "",

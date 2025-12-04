@@ -9,9 +9,11 @@ part of 'sources.dart';
 Source _$SourceFromJson(Map<String, dynamic> json) {
   $checkKeys(json, disallowNullValues: const ['uuid']);
   return Source(
-    videoSourcesPriority: (json['videoSourcesPriority'] as List<dynamic>)
-        .map((e) => e as String)
-        .toList(),
+    videoSourcesPriority:
+        (json['videoSourcesPriority'] as List<dynamic>?)
+            ?.map((e) => e as String)
+            .toList() ??
+        [],
     videosUrlParseMode: $enumDecode(
       _$ChaptersVideosUrlParseModesEnumMap,
       json['videosUrlParseMode'],

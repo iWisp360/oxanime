@@ -21,7 +21,13 @@ class SearchResult {
   final String name;
   final String mainUrl;
   String? imageUrl;
-  SearchResult({this.imageUrl, required this.mainUrl, required this.name});
+  final String sourceUUID;
+  SearchResult({
+    required this.sourceUUID,
+    this.imageUrl,
+    required this.mainUrl,
+    required this.name,
+  });
 }
 
 @JsonSerializable()
@@ -41,6 +47,7 @@ class Source {
   final String searchSerieChaptersIdentifiersCSSClass;
   final String searchSerieChaptersUrlsCSSClass;
   // chapters videos fields
+  @JsonKey(defaultValue: [])
   final List<String> videoSourcesPriority;
   final ChaptersVideosUrlParseModes videosUrlParseMode;
   // source configuration fields
@@ -120,20 +127,37 @@ class Source {
       searchSerieNameExcludes ?? [],
     );
 
-    final List<String> mainUrls = await sourceHtmlParser.getMultipleCSSClassAttrValue(
-      searchSerieUrlCSSClass,
-      searchSerieUrlExcludes ?? [],
-      urlHtmlAttribute,
-    );
+    final List<String?> seriesUrls =
+        (await sourceHtmlParser.getMultipleCSSClassAttrValue(
+          searchSerieUrlCSSClass,
+          searchSerieUrlExcludes ?? [],
+          urlHtmlAttribute,
+        )).map((e) {
+          if (searchSerieUrlResultsAbsolute == false) {
+            return SourceConnection.makeUrlFromRelative(mainUrl, e);
+          }
+        }).toList();
 
-    final List<String> imageUrls = await sourceHtmlParser.getMultipleCSSClassAttrValue(
-      searchSerieImageCSSClass,
-      searchSerieImageExcludes ?? [],
-      imgHtmlAttribute,
-    );
+    final List<String?> imageUrls =
+        (await sourceHtmlParser.getMultipleCSSClassAttrValue(
+          searchSerieImageCSSClass,
+          searchSerieImageExcludes ?? [],
+          imgHtmlAttribute,
+        )).map((e) {
+          if (searchSerieUrlResultsAbsolute == false) {
+            return SourceConnection.makeUrlFromRelative(mainUrl, e);
+          }
+        }).toList();
 
     for (int i = 0; i < names.length; i++) {
-      results.add(SearchResult(name: names[i], mainUrl: mainUrls[i], imageUrl: imageUrls[i]));
+      results.add(
+        SearchResult(
+          sourceUUID: uuid,
+          name: names[i],
+          mainUrl: seriesUrls[i] ?? "",
+          imageUrl: imageUrls[i] ?? "",
+        ),
+      );
     }
     logger.i("Got ${results.length} results");
     return results;
