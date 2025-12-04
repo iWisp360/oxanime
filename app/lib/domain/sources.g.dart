@@ -9,29 +9,33 @@ part of 'sources.dart';
 Source _$SourceFromJson(Map<String, dynamic> json) {
   $checkKeys(json, disallowNullValues: const ['uuid']);
   return Source(
-    sourceVideosUrlParseModes: $enumDecode(
-      _$SourceVideosUrlParseModesEnumMap,
-      json['sourceVideosUrlParseModes'],
-    ),
+    chaptersVideosUrlLocation:
+        $enumDecodeNullable(
+          _$ChaptersVideosUrlLocationEnumMap,
+          json['chaptersVideosUrlLocation'],
+        ) ??
+        ChaptersVideosUrlLocation.empty,
+    chaptersVideosUrlParseMode:
+        $enumDecodeNullable(
+          _$ChaptersVideosUrlParseModesEnumMap,
+          json['chaptersVideosUrlParseMode'],
+        ) ??
+        ChaptersVideosUrlParseModes.empty,
     chaptersVideosJsonListStartPattern:
-        json['chaptersVideosJsonListStartPattern'] as String,
+        json['chaptersVideosJsonListStartPattern'] as String? ?? '',
     chaptersVideosJsonListEndPattern:
-        json['chaptersVideosJsonListEndPattern'] as String,
+        json['chaptersVideosJsonListEndPattern'] as String? ?? '',
     videoSourcesPriority:
         (json['videoSourcesPriority'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList() ??
         [],
-    chaptersVideosUrlParseMode: $enumDecode(
-      _$ChaptersVideosUrlParseModesEnumMap,
-      json['chaptersVideosUrlParseMode'],
-    ),
     searchSerieNameExcludes: (json['searchSerieNameExcludes'] as List<dynamic>?)
         ?.map((e) => e as String)
         .toList(),
     searchSerieNameCSSClass: json['searchSerieNameCSSClass'] as String,
     searchSerieUrlCSSClass: json['searchSerieUrlCSSClass'] as String,
-    searchSerieImageCSSClass: json['searchSerieImageCSSClass'] as String,
+    searchSerieImageCSSClass: json['searchSerieImageCSSClass'] as String?,
     searchSerieChaptersIdentifiersCSSClass:
         json['searchSerieChaptersIdentifiersCSSClass'] as String,
     searchSerieChaptersUrlsCSSClass:
@@ -72,8 +76,8 @@ Map<String, dynamic> _$SourceToJson(Source instance) => <String, dynamic>{
       instance.searchSerieChaptersIdentifiersCSSClass,
   'searchSerieChaptersUrlsCSSClass': instance.searchSerieChaptersUrlsCSSClass,
   'videoSourcesPriority': instance.videoSourcesPriority,
-  'sourceVideosUrlParseModes':
-      _$SourceVideosUrlParseModesEnumMap[instance.sourceVideosUrlParseModes]!,
+  'chaptersVideosUrlLocation':
+      _$ChaptersVideosUrlLocationEnumMap[instance.chaptersVideosUrlLocation]!,
   'chaptersVideosUrlParseMode':
       _$ChaptersVideosUrlParseModesEnumMap[instance
           .chaptersVideosUrlParseMode]!,
@@ -88,11 +92,10 @@ Map<String, dynamic> _$SourceToJson(Source instance) => <String, dynamic>{
   'searchSerieUrlResultsAbsolute': instance.searchSerieUrlResultsAbsolute,
 };
 
-const _$SourceVideosUrlParseModesEnumMap = {
-  SourceVideosUrlParseModes.parseJavaScript: 'parseJavaScript',
-  SourceVideosUrlParseModes.cssClass: 'cssClass',
-  SourceVideosUrlParseModes.none: 'none',
-  SourceVideosUrlParseModes.empty: 'empty',
+const _$ChaptersVideosUrlLocationEnumMap = {
+  ChaptersVideosUrlLocation.cssClass: 'cssClass',
+  ChaptersVideosUrlLocation.none: 'none',
+  ChaptersVideosUrlLocation.empty: 'empty',
 };
 
 const _$ChaptersVideosUrlParseModesEnumMap = {

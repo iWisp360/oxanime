@@ -44,7 +44,7 @@ class Source {
   // serie searching fields
   final String searchSerieUrlCSSClass;
   List<String>? searchSerieUrlExcludes;
-  final String searchSerieImageCSSClass;
+  String? searchSerieImageCSSClass;
   List<String>? searchSerieImageExcludes;
   // serie chapters fields
   final String searchSerieChaptersIdentifiersCSSClass;
@@ -52,9 +52,13 @@ class Source {
   // chapters videos fields
   @JsonKey(defaultValue: [])
   final List<String> videoSourcesPriority;
-  final SourceVideosUrlParseModes sourceVideosUrlParseModes;
+  @JsonKey(defaultValue: ChaptersVideosUrlLocation.empty)
+  final ChaptersVideosUrlLocation chaptersVideosUrlLocation;
+  @JsonKey(defaultValue: ChaptersVideosUrlParseModes.empty)
   final ChaptersVideosUrlParseModes chaptersVideosUrlParseMode;
+  @JsonKey(defaultValue: PlaceHolders.emptyString)
   final String chaptersVideosJsonListStartPattern;
+  @JsonKey(defaultValue: PlaceHolders.emptyString)
   final String chaptersVideosJsonListEndPattern;
   // source configuration fields
   final String name;
@@ -68,15 +72,15 @@ class Source {
   bool? searchSerieUrlResultsAbsolute;
 
   Source({
-    required this.sourceVideosUrlParseModes,
+    required this.chaptersVideosUrlLocation,
+    required this.chaptersVideosUrlParseMode,
     required this.chaptersVideosJsonListStartPattern,
     required this.chaptersVideosJsonListEndPattern,
     required this.videoSourcesPriority,
-    required this.chaptersVideosUrlParseMode,
     this.searchSerieNameExcludes,
     required this.searchSerieNameCSSClass,
     required this.searchSerieUrlCSSClass,
-    required this.searchSerieImageCSSClass,
+    this.searchSerieImageCSSClass,
     required this.searchSerieChaptersIdentifiersCSSClass,
     required this.searchSerieChaptersUrlsCSSClass,
     required this.searchSerieDescriptionCSSClass,
@@ -147,16 +151,22 @@ class Source {
           }
         }).toList();
 
-    final List<String?> imageUrls =
-        (await sourceHtmlParser.getMultipleCSSClassAttrValue(
-          searchSerieImageCSSClass,
-          searchSerieImageExcludes ?? [],
-          imgHtmlAttribute,
-        )).map((e) {
-          if (searchSerieUrlResultsAbsolute == false) {
-            return SourceConnection.makeUrlFromRelative(mainUrl, e);
-          }
-        }).toList();
+    late final List<String?> imageUrls;
+
+    if (searchSerieImageCSSClass == null) {
+      logger.w("Source doesn't have a CSS class for images");
+    } else {
+      imageUrls =
+          (await sourceHtmlParser.getMultipleCSSClassAttrValue(
+            searchSerieImageCSSClass ?? PlaceHolders.emptyString,
+            searchSerieImageExcludes ?? [],
+            imgHtmlAttribute,
+          )).map((e) {
+            if (searchSerieUrlResultsAbsolute == false) {
+              return SourceConnection.makeUrlFromRelative(mainUrl, e);
+            }
+          }).toList();
+    }
 
     for (int i = 0; i < names.length; i++) {
       results.add(

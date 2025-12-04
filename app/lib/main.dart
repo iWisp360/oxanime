@@ -9,6 +9,7 @@ import "package:oxanime/core/constants.dart";
 import "package:oxanime/core/logs.dart";
 import "package:oxanime/core/preferences.dart";
 import "package:oxanime/domain/sources.dart";
+import "package:oxanime/widgets/testing.dart";
 import "package:path/path.dart";
 import "package:path_provider/path_provider.dart";
 
@@ -48,6 +49,7 @@ void main() async {
     logger.i("Disabling Logs");
     logger.close();
   }
+  runApp(OxAnimeMainApp());
 }
 
 Future<void> initLogger() async {
@@ -62,6 +64,6 @@ class OxAnimeMainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: "OxAnime", home: Placeholder(), debugShowCheckedModeBanner: false);
+    return MaterialApp(title: "OxAnime", home: TestScaffold(), debugShowCheckedModeBanner: false);
   }
 }

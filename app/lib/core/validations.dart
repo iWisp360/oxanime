@@ -10,7 +10,11 @@ class Validate {
         !Uuid.isValidUUID(fromString: source.uuid) ||
         source.mainUrl.isEmpty ||
         source.searchUrl.isEmpty ||
-        source.chaptersVideosUrlParseMode == SourceVideosUrlParseModes.empty ||
+        source.chaptersVideosUrlLocation == ChaptersVideosUrlLocation.empty ||
+        source.chaptersVideosJsonListStartPattern == "" ||
+        source.chaptersVideosJsonListEndPattern == "" ||
+        source.chaptersVideosUrlParseMode == ChaptersVideosUrlParseModes.empty ||
+        source.chaptersVideosUrlLocation == ChaptersVideosUrlLocation.empty ||
         source.uuid.isEmpty) {
       logger.w(
         "Source ${source.name} is not valid. Required fields are:\n${RequiredValues.forSources}",

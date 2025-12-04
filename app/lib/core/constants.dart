@@ -20,7 +20,7 @@ class PlaceHolders {
     chaptersVideosJsonListStartPattern: PlaceHolders.emptyString,
     chaptersVideosJsonListEndPattern: PlaceHolders.emptyString,
     chaptersVideosUrlParseMode: ChaptersVideosUrlParseModes.empty,
-    sourceVideosUrlParseModes: SourceVideosUrlParseModes.empty,
+    chaptersVideosUrlLocation: ChaptersVideosUrlLocation.empty,
     videoSourcesPriority: const [],
 
     searchSerieNameCSSClass: PlaceHolders.emptyString,
