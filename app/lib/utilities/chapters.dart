@@ -12,11 +12,11 @@ part "chapters.g.dart";
 
 @JsonSerializable()
 class Chapter {
-  static late final Source _source;
   final String identifier;
   final String url;
   final String sourceUUID;
-  Chapter({required this.identifier, required this.url, required this.sourceUUID});
+  final Source _source;
+  Chapter({required this.identifier, required this.url, required this.sourceUUID, required Source source}): _source = source;
 
   factory Chapter.fromJson(Map<String, dynamic> map) => _$ChapterFromJson(map);
 
@@ -83,14 +83,3 @@ class Chapter {
 
     return videoUrls;
   }
-
-  Future<void> assignSource() async {
-    for (var s in sources) {
-      if (s.uuid == sourceUUID) {
-        _source = s;
-      } else {
-        throw Exception("Source not found for this chapter");
-      }
-    }
-  }
-}
