@@ -23,7 +23,7 @@ class Serie {
   String? description;
   List<Chapter>? chapters;
   final String sourceUUID;
-  late final Source _source;
+  static late final Source _source;
 
   Serie({
     required this.name,
@@ -36,15 +36,36 @@ class Serie {
 
   factory Serie.fromMap(Map<String, dynamic> map) => _$SerieFromJson(map);
 
-  static Future<Serie> createSerie(SearchResult result) async {
+  Future<Serie> createSerie(SearchResult result) async {
+    final String? description = await _getSerieDescription(
+      (await SourceConnection.getBodyFrom(url)),
+    );
     var serie = Serie(
       name: result.name,
       url: result.mainUrl,
       sourceUUID: result.sourceUUID,
+      description: description ?? "No Description",
       imageUrl: result.imageUrl ?? "",
     );
     serie.assignSource();
     return serie;
+  }
+
+  Future<String?> _getSerieDescription(final String responseBody) async {
+    late final String? description;
+    try {
+      description =
+          await (await SourceHtmlParser.create(
+            html: await SourceConnection.getBodyFrom(url),
+          )).getSerieCSSClassText(
+            _source.searchSerieDescriptionCSSClass,
+            _source.searchSerieDescriptionExcludes ?? [],
+          );
+    } catch (e) {
+      logger.e("Couldn't get description of serie $name: $e");
+      return null;
+    }
+    return description;
   }
 
   Future<void> assignSource() async {
@@ -109,7 +130,7 @@ class Serie {
     final seriesPath = await _getSeriesPath();
     try {
       final fileContents = await File(await _getSeriesPath()).bufferedRead();
-      final serializedSerie = toMap();
+      final Map<String, dynamic> serializedSerie = toMap();
       List<Map<String, dynamic>> serializedSeries = jsonDecode(fileContents);
 
       // WIP: Merge Manager, it will be able to merge certain fields of an existing serie with

@@ -174,21 +174,7 @@ class Source {
     return null;
   }
 
-  // ignore: unused_element
-  Future<String?> _getSerieDescription(final String responseBody) async {
-    return await (await SourceHtmlParser.create(
-      html: responseBody,
-    )).getSerieCSSClassText(searchSerieDescriptionCSSClass, searchSerieDescriptionExcludes ?? []);
-  }
-
-  // ignore: unused_element
-  Future<String?> _getSerieName(final String responseBody) async {
-    return await (await SourceHtmlParser.create(
-      html: responseBody,
-    )).getSerieCSSClassText(searchSerieNameCSSClass, searchSerieNameExcludes ?? []);
-  }
-
-  bool _isUsable() {
+  bool isUsable() {
     bool result = (enabled == true) && (Uuid.isValidUUID(fromString: uuid));
     logger.i((result == false) ? "$name is not usable" : "$name is usable");
     return result;
@@ -205,7 +191,7 @@ class Source {
       for (var source in serializedContents) {
         sources.add(Source.fromMap(source));
       }
-      return sources.where((source) => source._isUsable()).toList();
+      return sources.where((source) => source.isUsable()).toList();
     } catch (e, s) {
       logger.e("Error while reading sources: $e\n$s");
       rethrow;
