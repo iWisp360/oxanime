@@ -14,5 +14,18 @@
     "flutterMode": "debug",
     "flutterPlatform": "linux",
     "args": ["--hot"]
+  },
+  {
+    "label": "Debug Android",
+    "adapter": "Flutter",
+    "type": "flutter",
+    "request": "launch",
+    "cwd": "${ZED_WORKTREE_ROOT}/app",
+    "program": "lib/main.dart",
+    "useFvm": true,
+    "flutterMode": "debug",
+    "flutterPlatform": "android",
+    "args": ["--hot"],
+    "env": { "ANDROID_HOME": "/home/iwisp360/Documents/Code/Android/Sdk" }
   }
 ]

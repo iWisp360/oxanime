@@ -1,17 +1,41 @@
 // Never gonna give you up
 // WIP: Backup utility & download management
 
+import "dart:io";
+
 import "package:flutter/material.dart";
-import "package:oxanime/ui/home.dart";
-import "package:oxanime/utilities/html_parser.dart";
+import "package:media_kit/media_kit.dart";
 import "package:oxanime/utilities/logs.dart";
-import "package:oxanime/utilities/networking.dart";
 import "package:oxanime/utilities/preferences.dart";
 import "package:oxanime/utilities/sources.dart";
+import "package:path/path.dart";
+import "package:path_provider/path_provider.dart";
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  sources = await Source.getSources();
+  MediaKit.ensureInitialized();
+  try {
+    sources = await Source.getSources();
+    sourcesInitSuccess = true;
+  } catch (e) {
+    if (e != PathNotFoundException) {
+      try {
+        await File(
+          join((await getApplicationSupportDirectory()).path, sourcesFileName),
+        ).create(recursive: true);
+        sources = await Source.getSources();
+        sourcesInitSuccess = true;
+      } catch (e) {
+        logger.e("Sources couldn't be retrieved from local storage: $e");
+        sourcesInitSuccess = false;
+        // WIP: Notify this through UI
+        sources = [];
+      }
+    }
+    // WIP: Here too
+    rethrow;
+  }
+
   try {
     logger.i("Logging to file");
     await initLogger();
@@ -23,12 +47,6 @@ void main() async {
     logger.i("Disabling Logs");
     logger.close();
   }
-
-  var results = await sources[0].query("Date A Live");
-
-  print(results[0].mainUrl);
-
-  runApp(OxAnimeMainApp());
 }
 
 Future<void> initLogger() async {
@@ -45,7 +63,7 @@ class OxAnimeMainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "OxAnime",
-      home: OxAnimeHomeScreen(),
+      home: Placeholder(),
       debugShowCheckedModeBanner: false,
     );
   }

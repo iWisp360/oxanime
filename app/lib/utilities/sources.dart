@@ -13,6 +13,9 @@ part "sources.g.dart";
 const sourcesFileName = "sources.json";
 
 late List<Source> sources;
+late bool sourcesInitSuccess;
+
+enum ChaptersVideosUrlParseModes { jsonList }
 
 /// Sources may present chapter video links inside javascript 
 /// arrays, which are unreachable by using a css class,
@@ -27,7 +30,13 @@ class SearchResult {
   final String name;
   final String mainUrl;
   String? imageUrl;
-  SearchResult({this.imageUrl, required this.mainUrl, required this.name});
+  final String sourceUUID;
+  SearchResult({
+    required this.sourceUUID,
+    this.imageUrl,
+    required this.mainUrl,
+    required this.name,
+  });
 }
 
 @JsonSerializable()
@@ -44,7 +53,14 @@ class Source {
   final String searchSerieImageCSSClass;
   List<String>? searchSerieImageExcludes;
   // serie chapters fields
-  final String searchSerieChaptersCSSClass;
+  final String searchSerieChaptersIdentifiersCSSClass;
+  final String searchSerieChaptersUrlsCSSClass;
+  // chapters videos fields
+  @JsonKey(defaultValue: [])
+  final List<String> videoSourcesPriority;
+  final ChaptersVideosUrlParseModes videosUrlParseMode;
+  final String chaptersVideosJsonListStartPattern;
+  final String chaptersVideosJsonListEndPattern;
   // source configuration fields
   final String name;
   final String mainUrl;
@@ -57,11 +73,16 @@ class Source {
   bool? searchSerieUrlResultsAbsolute;
 
   Source({
+    required this.chaptersVideosJsonListStartPattern,
+    required this.chaptersVideosJsonListEndPattern,
+    required this.videoSourcesPriority,
+    required this.videosUrlParseMode,
     this.searchSerieNameExcludes,
     required this.searchSerieNameCSSClass,
     required this.searchSerieUrlCSSClass,
     required this.searchSerieImageCSSClass,
-    required this.searchSerieChaptersCSSClass,
+    required this.searchSerieChaptersIdentifiersCSSClass,
+    required this.searchSerieChaptersUrlsCSSClass,
     required this.searchSerieDescriptionCSSClass,
     this.searchSerieDescriptionExcludes,
     this.searchSerieImageExcludes,
@@ -119,20 +140,37 @@ class Source {
       searchSerieNameExcludes ?? [],
     );
 
-    final List<String> mainUrls = await sourceHtmlParser.getMultipleCSSClassAttrValue(
-      searchSerieUrlCSSClass,
-      searchSerieUrlExcludes ?? [],
-      urlHtmlAttribute,
-    );
+    final List<String?> seriesUrls =
+        (await sourceHtmlParser.getMultipleCSSClassAttrValue(
+          searchSerieUrlCSSClass,
+          searchSerieUrlExcludes ?? [],
+          urlHtmlAttribute,
+        )).map((e) {
+          if (searchSerieUrlResultsAbsolute == false) {
+            return SourceConnection.makeUrlFromRelative(mainUrl, e);
+          }
+        }).toList();
 
-    final List<String> imageUrls = await sourceHtmlParser.getMultipleCSSClassAttrValue(
-      searchSerieImageCSSClass,
-      searchSerieImageExcludes ?? [],
-      imgHtmlAttribute,
-    );
+    final List<String?> imageUrls =
+        (await sourceHtmlParser.getMultipleCSSClassAttrValue(
+          searchSerieImageCSSClass,
+          searchSerieImageExcludes ?? [],
+          imgHtmlAttribute,
+        )).map((e) {
+          if (searchSerieUrlResultsAbsolute == false) {
+            return SourceConnection.makeUrlFromRelative(mainUrl, e);
+          }
+        }).toList();
 
     for (int i = 0; i < names.length; i++) {
-      results.add(SearchResult(name: names[i], mainUrl: mainUrls[i], imageUrl: imageUrls[i]));
+      results.add(
+        SearchResult(
+          sourceUUID: uuid,
+          name: names[i],
+          mainUrl: seriesUrls[i] ?? "",
+          imageUrl: imageUrls[i] ?? "",
+        ),
+      );
     }
     logger.i("Got ${results.length} results");
     return results;
@@ -149,21 +187,7 @@ class Source {
     return null;
   }
 
-  // ignore: unused_element
-  Future<String?> _getSerieDescription(final String responseBody) async {
-    return await (await SourceHtmlParser.create(
-      html: responseBody,
-    )).getSerieCSSClassText(searchSerieDescriptionCSSClass, searchSerieDescriptionExcludes ?? []);
-  }
-
-  // ignore: unused_element
-  Future<String?> _getSerieName(final String responseBody) async {
-    return await (await SourceHtmlParser.create(
-      html: responseBody,
-    )).getSerieCSSClassText(searchSerieNameCSSClass, searchSerieNameExcludes ?? []);
-  }
-
-  bool _isUsable() {
+  bool isUsable() {
     bool result = (enabled == true) && (Uuid.isValidUUID(fromString: uuid));
     logger.i((result == false) ? "$name is not usable" : "$name is usable");
     return result;
@@ -180,7 +204,7 @@ class Source {
       for (var source in serializedContents) {
         sources.add(Source.fromMap(source));
       }
-      return sources.where((source) => source._isUsable()).toList();
+      return sources.where((source) => source.isUsable()).toList();
     } catch (e, s) {
       logger.e("Error while reading sources: $e\n$s");
       rethrow;

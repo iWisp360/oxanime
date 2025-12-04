@@ -16,6 +16,10 @@ class SourceConnection {
     }
   }
 
+  static String makeUrlFromRelative(String part1, String part2) {
+    return part1 + part2;
+  }
+
   static Future<Document> parseHtml(String response) async {
     return parse(response);
   }
