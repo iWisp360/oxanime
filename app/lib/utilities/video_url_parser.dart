@@ -1,6 +1,7 @@
 import "package:html/dom.dart";
 import "package:html/parser.dart";
 import "package:http/http.dart";
+import "package:oxanime/utilities/exceptions.dart";
 
 mixin VideoSourceParameters {
   bool get needsAWebView;
@@ -11,8 +12,8 @@ mixin VideoSourceParameters {
 // either by natively streaming it or embedding a webview player if getting a URL is not possible.
 // A parser gets the following contents if available:
 // - URL or a List of URLs of the static content of the video
-// - Video Quality Options
-// - Video Duration
+// - Video Quality Options -> not implemented
+// - Video Duration -> MediaKit does this, so these things actually don't
 enum VideoSourceParsers {
   yourUpload, // sourced from aniyomi
 }
@@ -29,7 +30,6 @@ class VideoSources {
   }
 }
 
-// Working
 class YourUpload with VideoSourceParameters {
   @override
   bool get needsAWebView => false;
@@ -38,25 +38,55 @@ class YourUpload with VideoSourceParameters {
   Future<String?> getVideoFromUrl(final String url) async {
     const startMark = "file: '";
     const endMark = "',";
+    late final Request request;
+    late final Client client;
+    try {
+      client = Client();
+      request = Request("GET", Uri.parse(url));
 
-    final request = Request("GET", Uri.parse(url));
-    request.headers["referer"] = VideoSources.getCompleteUrl(
-      VideoSources.videoSourcesDomainNames(VideoSourceParsers.yourUpload)[0],
-    );
+      request.headers["referer"] = VideoSources.getCompleteUrl(
+        VideoSources.videoSourcesDomainNames(VideoSourceParsers.yourUpload)[0],
+      );
+    } catch (e, s) {
+      throw VideoUrlParserException(
+        errorMsg: e,
+        stackTrace: s,
+        kind: VideoUrlParserExceptionKind.requestMakeException,
+      );
+    }
+    late final Response response;
+    try {
+      response = await Response.fromStream(await client.send(request));
+    } catch (e, s) {
+      throw VideoUrlParserException(
+        errorMsg: e,
+        stackTrace: s,
+        kind: VideoUrlParserExceptionKind.responseReceiveException,
+      );
+    }
 
-    final client = Client();
-    final response = await Response.fromStream(await client.send(request));
-    final Element elementSelectFirst = HtmlParser(response.body)
-        .parse()
-        .querySelectorAll("script")
-        .firstWhere((element) => element.text.contains("jwplayerOptions"));
-    final String strData = elementSelectFirst.text;
-    if (strData.isEmpty) {
-      return null;
-    } else {
-      int startOfUrlIndex = strData.indexOf(startMark);
-      int endOfUrlIndex = strData.indexOf(endMark);
-      return strData.substring(startOfUrlIndex + startMark.length, endOfUrlIndex);
+    try {
+      final Element elementSelectFirst = HtmlParser(response.body)
+          .parse()
+          .querySelectorAll("script")
+          .firstWhere((element) => element.text.contains("jwplayerOptions"));
+
+      final String elementSelectFirstData = elementSelectFirst.text;
+
+      if (elementSelectFirstData.isEmpty) {
+        return null;
+      } else {
+        int startOfUrlIndex = elementSelectFirstData.indexOf(startMark);
+        int endOfUrlIndex = elementSelectFirstData.indexOf(endMark);
+
+        return elementSelectFirstData.substring(startOfUrlIndex + startMark.length, endOfUrlIndex);
+      }
+    } catch (e, s) {
+      throw VideoUrlParserException(
+        errorMsg: e,
+        stackTrace: s,
+        kind: VideoUrlParserExceptionKind.responseParseException,
+      );
     }
   }
 }
