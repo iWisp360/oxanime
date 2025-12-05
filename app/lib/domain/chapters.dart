@@ -82,7 +82,7 @@ class Chapter {
           for (var object in jsonList) {
             final String? videoUrl = object[_source.chaptersVideosJsonListKey];
             if (videoUrl == null) continue;
-            if (!videoUrl.contains("yourupload.com")) continue; // remove
+            if (!videoUrl.contains("streamtape.com")) continue; // remove
             videoUrls.add(videoUrl);
           }
         }

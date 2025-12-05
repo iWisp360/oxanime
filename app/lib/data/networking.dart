@@ -16,6 +16,11 @@ class SourceConnection {
     }
   }
 
+  /// if you give "example.com" you get "https://example.com/"
+  static String makeUrlFromDomainName(final String domainName) {
+    return "https://$domainName/";
+  }
+
   static String makeUrlFromRelative(String part1, String part2) {
     return part1 + part2;
   }

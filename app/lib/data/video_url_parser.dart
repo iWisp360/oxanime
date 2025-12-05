@@ -1,14 +1,72 @@
+import "package:collection/collection.dart";
 import "package:html/dom.dart";
 import "package:html/parser.dart";
 import "package:http/http.dart";
-import "package:oxanime/core/exceptions.dart";
-import "package:oxanime/data/html_parser.dart";
-import "package:oxanime/core/logs.dart";
+import "package:oxanime/core/constants.dart";
 import "package:oxanime/core/enums.dart";
+import "package:oxanime/core/exceptions.dart";
+import "package:oxanime/core/logs.dart";
+import "package:oxanime/data/html_parser.dart";
+import "package:oxanime/data/networking.dart";
+
+class StreamTape with VideoSourceParameters {
+  @override
+  bool get needsAWebView => false;
+
+  static Future<String> getVideoFromUrl(final String url) async {
+    late final Client client;
+    late final String responseBody;
+
+    try {
+      client = Client();
+      responseBody = (await client.get(Uri.parse(url))).body;
+    } catch (e, s) {
+      throw VideoUrlParserException(
+        errorMsg: e,
+        stackTrace: s,
+        kind: VideoUrlParserExceptionKind.responseReceiveException,
+      );
+    }
+
+    final elementSelectFirst = (await SourceHtmlParser.create(html: responseBody)).serializedHtml
+        .querySelectorAll(scriptHtmlCSSClass)
+        .firstWhereOrNull(
+          (element) => element.text.contains("document.getElementById('robotlink')"),
+        );
+
+    final firstDelimiter = "document.getElementById('robotlink').innerHTML = '";
+    final secondDelimiter = "+ ('xcd";
+
+    if (elementSelectFirst == null || !responseBody.contains(firstDelimiter)) {
+      return PlaceHolders.emptyString;
+    }
+
+    final strSubstringAfter = elementSelectFirst.text.substring(
+      elementSelectFirst.text.indexOf(firstDelimiter) + firstDelimiter.length,
+    );
+
+    final firstQuoteIndex = strSubstringAfter.indexOf("'");
+    final secondDelimiterIndex = strSubstringAfter.indexOf(secondDelimiter);
+
+    if (firstQuoteIndex == -1 || secondDelimiterIndex == -1) return PlaceHolders.emptyString;
+
+    final afterSecondDelimiter = strSubstringAfter.substring(
+      secondDelimiterIndex + secondDelimiter.length,
+    );
+
+    final secondQuoteIndex = afterSecondDelimiter.indexOf("'");
+
+    if (secondQuoteIndex == -1) return PlaceHolders.emptyString;
+
+    final part1 = strSubstringAfter.substring(0, firstQuoteIndex);
+    final part2 = afterSecondDelimiter.substring(0, secondQuoteIndex);
+
+    return "https:$part1$part2";
+  }
+}
 
 mixin VideoSourceParameters {
   bool get needsAWebView;
-  static Future<String?> getVideoFromUrl(final String url) async {}
 }
 
 // In this context, a parser is the utility that brings you the content you need to watch a serie chapter,
@@ -19,13 +77,10 @@ mixin VideoSourceParameters {
 // - Video Duration -> MediaKit does this, so these things actually don't
 
 class VideoSources {
-  static String getCompleteUrl(final String domainName) {
-    return "https://$domainName/";
-  }
-
   static List<String> videoSourcesDomainNames(VideoSourceParsers videoSource) {
     return switch (videoSource) {
       VideoSourceParsers.yourUpload => ["yourupload.com"],
+      VideoSourceParsers.streamTape => ["streamtape.com"],
     };
   }
 }
@@ -34,7 +89,6 @@ class YourUpload with VideoSourceParameters {
   @override
   bool get needsAWebView => false;
 
-  @override
   static Future<String> getVideoFromUrl(final String url) async {
     const startMark = "file: '";
     const endMark = "',";
@@ -44,7 +98,7 @@ class YourUpload with VideoSourceParameters {
       client = Client();
       request = Request("GET", Uri.parse(url));
 
-      request.headers["referer"] = VideoSources.getCompleteUrl(
+      request.headers["referer"] = SourceConnection.makeUrlFromDomainName(
         VideoSources.videoSourcesDomainNames(VideoSourceParsers.yourUpload)[0],
       );
     } catch (e, s) {

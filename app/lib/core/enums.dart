@@ -4,4 +4,5 @@ enum ChaptersVideosUrlLocation { cssClass, none, empty }
 
 enum VideoSourceParsers {
   yourUpload, // sourced from aniyomi
+  streamTape, // sourced from aniyomi
 }
