@@ -1,6 +1,7 @@
 import "dart:convert";
 import "dart:io";
 
+import "package:collection/collection.dart";
 import "package:json_annotation/json_annotation.dart";
 import "package:oxanime/core/validations.dart";
 import "package:oxanime/core/files.dart";
@@ -39,7 +40,7 @@ class Source {
   final String searchSerieNameCSSClass;
   List<String>? searchSerieNameExcludes;
   // serie description fields
-  final String searchSerieDescriptionCSSClass;
+  final String? searchSerieDescriptionCSSClass;
   List<String>? searchSerieDescriptionExcludes;
   // serie searching fields
   final String searchSerieUrlCSSClass;
@@ -51,7 +52,7 @@ class Source {
   final String searchSerieChaptersUrlsCSSClass;
   // chapters videos fields
   @JsonKey(defaultValue: [])
-  final List<String> videoSourcesPriority;
+  final List<String>? videoSourcesPriority;
   @JsonKey(defaultValue: ChaptersVideosUrlLocation.empty)
   final ChaptersVideosUrlLocation chaptersVideosUrlLocation;
   @JsonKey(defaultValue: ChaptersVideosUrlParseModes.empty)
@@ -60,6 +61,8 @@ class Source {
   final String chaptersVideosJsonListStartPattern;
   @JsonKey(defaultValue: PlaceHolders.emptyString)
   final String chaptersVideosJsonListEndPattern;
+  @JsonKey(defaultValue: PlaceHolders.emptyString)
+  final String chaptersVideosJsonListKey;
   // source configuration fields
   final String name;
   final String mainUrl;
@@ -76,14 +79,15 @@ class Source {
     required this.chaptersVideosUrlParseMode,
     required this.chaptersVideosJsonListStartPattern,
     required this.chaptersVideosJsonListEndPattern,
-    required this.videoSourcesPriority,
+    required this.chaptersVideosJsonListKey,
+    this.videoSourcesPriority,
     this.searchSerieNameExcludes,
     required this.searchSerieNameCSSClass,
     required this.searchSerieUrlCSSClass,
     this.searchSerieImageCSSClass,
     required this.searchSerieChaptersIdentifiersCSSClass,
     required this.searchSerieChaptersUrlsCSSClass,
-    required this.searchSerieDescriptionCSSClass,
+    this.searchSerieDescriptionCSSClass = PlaceHolders.emptyString,
     this.searchSerieDescriptionExcludes,
     this.searchSerieImageExcludes,
     this.searchSerieUrlExcludes,
@@ -97,14 +101,14 @@ class Source {
 
   factory Source.fromMap(Map<String, dynamic> json) => _$SourceFromJson(json);
 
-  Future pushSource() async {
+  Future push() async {
     final sourcesPath = await _getSourcesPath();
     final serializedSource = _toMap();
 
     try {
       final fileContents = await File(await _getSourcesPath()).bufferedRead();
 
-      List<Map<String, dynamic>> serializedSources = jsonDecode(fileContents);
+      List<Map<String, dynamic>> newSources = jsonDecode(fileContents);
       final conflict = await _getDuplicate(sources);
       if (conflict != null) {
         throw Exception(
@@ -114,12 +118,33 @@ class Source {
 
       sources.add(this);
 
-      serializedSources.add(serializedSource);
+      newSources.add(serializedSource);
 
-      final deserializedSources = jsonEncode(serializedSources);
+      final deserializedSources = jsonEncode(newSources);
       await File(sourcesPath).bufferedWrite(deserializedSources);
     } catch (e, s) {
       logger.e("Error while pushing source $name to $sourcesPath\n$s");
+      rethrow;
+    }
+  }
+
+  Future<void> pop() async {
+    final sourceCache = sources.singleWhereOrNull((source) => source.uuid == uuid);
+    if (sourceCache == null) {
+      logger.e("Couldn't cache the source to remove: .singleWhereOrNull() returned a null value");
+      return;
+    }
+
+    logger.i("Removing source with name $name");
+    final File file = File(await _getSourcesPath());
+    sources.removeWhere((source) => source.uuid == uuid);
+    final deserializedSources = jsonEncode(sources);
+
+    try {
+      await file.bufferedWrite(deserializedSources);
+    } catch (e, s) {
+      logger.e("Couldn't remove sources from ${FileNames.sourcesJson}: $e\n$s");
+      sources.add(sourceCache);
       rethrow;
     }
   }

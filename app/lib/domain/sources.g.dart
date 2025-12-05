@@ -25,6 +25,8 @@ Source _$SourceFromJson(Map<String, dynamic> json) {
         json['chaptersVideosJsonListStartPattern'] as String? ?? '',
     chaptersVideosJsonListEndPattern:
         json['chaptersVideosJsonListEndPattern'] as String? ?? '',
+    chaptersVideosJsonListKey:
+        json['chaptersVideosJsonListKey'] as String? ?? '',
     videoSourcesPriority:
         (json['videoSourcesPriority'] as List<dynamic>?)
             ?.map((e) => e as String)
@@ -41,7 +43,8 @@ Source _$SourceFromJson(Map<String, dynamic> json) {
     searchSerieChaptersUrlsCSSClass:
         json['searchSerieChaptersUrlsCSSClass'] as String,
     searchSerieDescriptionCSSClass:
-        json['searchSerieDescriptionCSSClass'] as String,
+        json['searchSerieDescriptionCSSClass'] as String? ??
+        PlaceHolders.emptyString,
     searchSerieDescriptionExcludes:
         (json['searchSerieDescriptionExcludes'] as List<dynamic>?)
             ?.map((e) => e as String)
@@ -84,6 +87,7 @@ Map<String, dynamic> _$SourceToJson(Source instance) => <String, dynamic>{
   'chaptersVideosJsonListStartPattern':
       instance.chaptersVideosJsonListStartPattern,
   'chaptersVideosJsonListEndPattern': instance.chaptersVideosJsonListEndPattern,
+  'chaptersVideosJsonListKey': instance.chaptersVideosJsonListKey,
   'name': instance.name,
   'mainUrl': instance.mainUrl,
   'searchUrl': instance.searchUrl,

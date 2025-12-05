@@ -19,6 +19,7 @@ class PlaceHolders {
 
     chaptersVideosJsonListStartPattern: PlaceHolders.emptyString,
     chaptersVideosJsonListEndPattern: PlaceHolders.emptyString,
+    chaptersVideosJsonListKey: PlaceHolders.emptyString,
     chaptersVideosUrlParseMode: ChaptersVideosUrlParseModes.empty,
     chaptersVideosUrlLocation: ChaptersVideosUrlLocation.empty,
     videoSourcesPriority: const [],
@@ -38,9 +39,26 @@ class FileNames {
 }
 
 class RequiredValues {
-  static const forSources =
-      "mainUrl\n"
-      "searchUrl\n"
-      "videosUrlParseMode\n"
-      "uuid (this one is generated if there is none specified)\n";
+  static const forSources = """
+  enabled (if not set, it is assumed to be false)
+  mainUrl
+  searchUrl
+  chaptersVideosUrlLocation
+  chaptersVideosJsonListStartPattern
+  chaptersVideosJsonListEndPattern
+  chaptersVideosUrlParseMode
+  if chaptersVideosUrlParseMode is cssClass:
+    searchSerieNameCSSClass
+    searchSerieUrlCSSClass
+    searchSerieChaptersIdentifiersCSSClass
+    searchSerieChaptersUrlsCSSClass
+
+  uuid (this one is generated if there is none specified)
+
+  Note: This is the bare minimum for a source to work with OxAnime,
+    however, you may also want to specify other fields for the source
+    to fully integrate. Check the wiki at <wikiUrlHere>.
+
+  Note: If you pass an UUID manually, this UUID should be valid.
+  """;
 }

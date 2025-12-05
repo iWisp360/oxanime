@@ -47,21 +47,27 @@ class Serie {
       name: result.name,
       url: result.mainUrl,
       sourceUUID: result.sourceUUID,
-      description: description ?? "No Description",
-      imageUrl: result.imageUrl ?? "",
+      description: description ?? "No Description", // should be translated
+      imageUrl: result.imageUrl ?? PlaceHolders.emptyString,
     );
     serie.assignSource();
     return serie;
   }
 
   Future<String?> _getSerieDescription(final String responseBody) async {
+    if (_source.searchSerieDescriptionCSSClass == null ||
+        _source.searchSerieDescriptionCSSClass == PlaceHolders.emptyString) {
+      logger.w("searchSerieDescriptionCSSClass is null or empty. Returning fallback description");
+      return "No Description";
+    }
+
     late final String? description;
     try {
       description =
           await (await SourceHtmlParser.create(
             html: await SourceConnection.getBodyFrom(url),
           )).getSerieCSSClassText(
-            _source.searchSerieDescriptionCSSClass,
+            _source.searchSerieDescriptionCSSClass!,
             _source.searchSerieDescriptionExcludes ?? [],
           );
     } catch (e) {

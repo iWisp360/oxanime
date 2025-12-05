@@ -41,17 +41,14 @@ class Chapter {
       logger.e("Connection error while getting chapter video urls: $e");
       rethrow;
     }
-
+    print(responseBody);
     switch (_source.chaptersVideosUrlParseMode) {
       case ChaptersVideosUrlParseModes.jsonList:
         final Element? element = HtmlParser(responseBody)
             .parse()
             .querySelectorAll(scriptHtmlCSSClass)
             .firstWhereOrNull(
-              (element) =>
-                  // Access text directly: 'element' is non-nullable 'Element' here.
-                  element.text.contains(_source.chaptersVideosJsonListStartPattern),
-              // The return type of firstWhere is now correctly Element?
+              (element) => element.text.contains(_source.chaptersVideosJsonListStartPattern),
             );
 
         if (element == null) {
@@ -68,6 +65,7 @@ class Chapter {
           );
           int endOfUrlIndex = elementSelectFirstData.indexOf(
             _source.chaptersVideosJsonListEndPattern,
+            startOfUrlIndex,
           );
 
           if (startOfUrlIndex == -1 || endOfUrlIndex == -1) {
@@ -75,13 +73,17 @@ class Chapter {
             return videoUrls;
           }
 
-          // WIP: Chapters Url parse from serialized json
-          var jsonObject = jsonDecode(
+          var jsonList = jsonDecode(
             elementSelectFirstData.substring(
               startOfUrlIndex + _source.chaptersVideosJsonListStartPattern.length,
               endOfUrlIndex,
             ),
           );
+          for (var object in jsonList) {
+            final videoUrl = object[_source.chaptersVideosJsonListKey];
+            if (videoUrl == null) continue;
+            videoUrls.add(videoUrl);
+          }
         }
 
         break;

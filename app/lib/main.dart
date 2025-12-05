@@ -8,6 +8,7 @@ import "package:media_kit/media_kit.dart";
 import "package:oxanime/core/constants.dart";
 import "package:oxanime/core/logs.dart";
 import "package:oxanime/core/preferences.dart";
+import "package:oxanime/domain/chapters.dart";
 import "package:oxanime/domain/sources.dart";
 import "package:oxanime/widgets/testing.dart";
 import "package:path/path.dart";
@@ -49,6 +50,16 @@ void main() async {
     logger.i("Disabling Logs");
     logger.close();
   }
+
+  final chapter = Chapter(
+    source: sources[0],
+    identifier: "Episodio 1",
+    url: "https://m.animeflv.net/ver/sakamoto-days-1",
+    sourceUUID: sources[0].uuid,
+  );
+  final videoUrls = await chapter.getChapterVideoUrls();
+  print(videoUrls);
+
   runApp(OxAnimeMainApp());
 }
 
