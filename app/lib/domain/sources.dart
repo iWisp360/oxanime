@@ -29,7 +29,7 @@ class SearchResult {
   });
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class Source {
   final SourceSerieFields serieFields;
   final SourceSearchFields searchFields;
@@ -61,6 +61,7 @@ class Source {
     final sourceCache = sources.singleWhereOrNull(
       (source) => source.configurationFields.uuid == configurationFields.uuid,
     );
+    
     if (sourceCache == null) {
       logger.e("Couldn't cache the source to remove: .singleWhereOrNull() returned a null value");
       return;
@@ -69,10 +70,10 @@ class Source {
     logger.i("Removing source with name ${configurationFields.name}");
     final File file = File(await _getSourcesPath());
     sources.removeWhere((source) => source.configurationFields.uuid == configurationFields.uuid);
-    final deserializedSources = jsonEncode(sources);
+    final serializedSources = jsonEncode(sources);
 
     try {
-      await file.bufferedWrite(deserializedSources);
+      await file.bufferedWrite(serializedSources);
     } catch (e, s) {
       logger.e("Couldn't remove sources from ${FileNames.sourcesJson}: $e\n$s");
       sources.add(sourceCache);
@@ -82,7 +83,7 @@ class Source {
 
   Future push() async {
     final sourcesPath = await _getSourcesPath();
-    final serializedSource = _toMap();
+    final deserializedSource = _toMap();
 
     try {
       final fileContents = await File(await _getSourcesPath()).bufferedRead();
@@ -99,10 +100,10 @@ class Source {
 
       sources.add(this);
 
-      newSources.add(serializedSource);
+      newSources.add(deserializedSource);
 
-      final deserializedSources = jsonEncode(newSources);
-      await File(sourcesPath).bufferedWrite(deserializedSources);
+      final serializedSources = jsonEncode(newSources);
+      await File(sourcesPath).bufferedWrite(serializedSources);
     } catch (e, s) {
       logger.e("Error while pushing source ${configurationFields.name} to $sourcesPath\n$s");
       rethrow;
@@ -131,7 +132,7 @@ class Source {
           searchFields.serieUrlExcludes,
           urlHtmlAttribute,
         )).map((e) {
-          if (configurationFields.searchUrlResultsAbsolute == false) {
+          if (configurationFields.resultsUrlAbsolute == false) {
             return SourceConnection.makeUrlFromRelative(configurationFields.mainUrl, e);
           }
         }).toList();
@@ -147,7 +148,7 @@ class Source {
             searchFields.serieImageExcludes,
             imgHtmlAttribute,
           )).map((e) {
-            if (configurationFields.searchUrlResultsAbsolute == false) {
+            if (configurationFields.resultsUrlAbsolute == false) {
               return SourceConnection.makeUrlFromRelative(configurationFields.mainUrl, e);
             }
           }).toList();
@@ -216,7 +217,7 @@ class SourceChaptersFields {
   factory SourceChaptersFields.fromJson(Map<String, dynamic> json) =>
       _$SourceChaptersFieldsFromJson(json);
 
-  Map<String, dynamic> _toJson() => _$SourceChaptersFieldsToJson(this);
+  Map<String, dynamic> toJson() => _$SourceChaptersFieldsToJson(this);
 }
 
 @JsonSerializable()
@@ -226,7 +227,7 @@ class SourceConfigurationFields {
   final String searchUrl;
   final bool enabled;
   final String uuid;
-  bool searchUrlResultsAbsolute;
+  bool resultsUrlAbsolute;
 
   SourceConfigurationFields({
     this.enabled = false,
@@ -234,33 +235,13 @@ class SourceConfigurationFields {
     this.searchUrl = Placeholders.emptyString,
     this.name = Placeholders.emptyString,
     this.uuid = Placeholders.uuid,
-    this.searchUrlResultsAbsolute = false,
+    this.resultsUrlAbsolute = false,
   });
 
   factory SourceConfigurationFields.fromJson(Map<String, dynamic> json) =>
       _$SourceConfigurationFieldsFromJson(json);
 
-  Map<String, dynamic> _toJson() => _$SourceConfigurationFieldsToJson(this);
-}
-
-@JsonSerializable()
-class SourceSerieFields {
-  final String descriptionCSSClass;
-  final String nameCSSClass;
-  final List<String> descriptionExcludes;
-  final List<String> nameExcludes;
-
-  SourceSerieFields({
-    this.descriptionCSSClass = Placeholders.emptyString,
-    this.nameCSSClass = Placeholders.emptyString,
-    this.descriptionExcludes = const [],
-    this.nameExcludes = const [],
-  });
-
-  factory SourceSerieFields.fromJson(Map<String, dynamic> json) =>
-      _$SourceSerieFieldsFromJson(json);
-
-  Map<String, dynamic> _toJson() => _$SourceSerieFieldsToJson(this);
+  Map<String, dynamic> toJson() => _$SourceConfigurationFieldsToJson(this);
 }
 
 @JsonSerializable()
@@ -280,13 +261,34 @@ class SourceSearchFields {
   factory SourceSearchFields.fromJson(Map<String, dynamic> json) =>
       _$SourceSearchFieldsFromJson(json);
 
-  Map<String, dynamic> _toJson() => _$SourceSearchFieldsToJson(this);
+  Map<String, dynamic> toJson() => _$SourceSearchFieldsToJson(this);
+}
+
+@JsonSerializable()
+class SourceSerieFields {
+  final String descriptionCSSClass;
+  final String nameCSSClass;
+  final List<String> descriptionExcludes;
+  final List<String> nameExcludes;
+
+  SourceSerieFields({
+    this.descriptionCSSClass = Placeholders.emptyString,
+    this.nameCSSClass = Placeholders.emptyString,
+    this.descriptionExcludes = const [],
+    this.nameExcludes = const [],
+  });
+
+  factory SourceSerieFields.fromJson(Map<String, dynamic> json) =>
+      _$SourceSerieFieldsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SourceSerieFieldsToJson(this);
 }
 
 // Sources may present chapter video links inside javascript
 // arrays, which are unreachable by using a css class,
 // so, parsing the array is necessary. Luckily, arrays
 // in Javascript has the same structure as a JSON object.
+
 @JsonSerializable()
 class SourceVideosFields {
   final List<String> videoSourcesPriority;
@@ -308,5 +310,5 @@ class SourceVideosFields {
   factory SourceVideosFields.fromJson(Map<String, dynamic> json) =>
       _$SourceVideosFieldsFromJson(json);
 
-  Map<String, dynamic> _toJson() => _$SourceVideosFieldsToJson(this);
+  Map<String, dynamic> toJson() => _$SourceVideosFieldsToJson(this);
 }

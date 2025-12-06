@@ -25,11 +25,11 @@ Source _$SourceFromJson(Map<String, dynamic> json) => Source(
 );
 
 Map<String, dynamic> _$SourceToJson(Source instance) => <String, dynamic>{
-  'serieFields': instance.serieFields,
-  'searchFields': instance.searchFields,
-  'videosFields': instance.videosFields,
-  'chaptersFields': instance.chaptersFields,
-  'configurationFields': instance.configurationFields,
+  'serieFields': instance.serieFields.toJson(),
+  'searchFields': instance.searchFields.toJson(),
+  'videosFields': instance.videosFields.toJson(),
+  'chaptersFields': instance.chaptersFields.toJson(),
+  'configurationFields': instance.configurationFields.toJson(),
 };
 
 SourceChaptersFields _$SourceChaptersFieldsFromJson(
@@ -55,7 +55,7 @@ SourceConfigurationFields _$SourceConfigurationFieldsFromJson(
   searchUrl: json['searchUrl'] as String? ?? Placeholders.emptyString,
   name: json['name'] as String? ?? Placeholders.emptyString,
   uuid: json['uuid'] as String? ?? Placeholders.uuid,
-  searchUrlResultsAbsolute: json['searchUrlResultsAbsolute'] as bool? ?? false,
+  resultsUrlAbsolute: json['resultsUrlAbsolute'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$SourceConfigurationFieldsToJson(
@@ -66,33 +66,8 @@ Map<String, dynamic> _$SourceConfigurationFieldsToJson(
   'searchUrl': instance.searchUrl,
   'enabled': instance.enabled,
   'uuid': instance.uuid,
-  'searchUrlResultsAbsolute': instance.searchUrlResultsAbsolute,
+  'resultsUrlAbsolute': instance.resultsUrlAbsolute,
 };
-
-SourceSerieFields _$SourceSerieFieldsFromJson(Map<String, dynamic> json) =>
-    SourceSerieFields(
-      descriptionCSSClass:
-          json['descriptionCSSClass'] as String? ?? Placeholders.emptyString,
-      nameCSSClass: json['nameCSSClass'] as String? ?? Placeholders.emptyString,
-      descriptionExcludes:
-          (json['descriptionExcludes'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
-      nameExcludes:
-          (json['nameExcludes'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
-    );
-
-Map<String, dynamic> _$SourceSerieFieldsToJson(SourceSerieFields instance) =>
-    <String, dynamic>{
-      'descriptionCSSClass': instance.descriptionCSSClass,
-      'nameCSSClass': instance.nameCSSClass,
-      'descriptionExcludes': instance.descriptionExcludes,
-      'nameExcludes': instance.nameExcludes,
-    };
 
 SourceSearchFields _$SourceSearchFieldsFromJson(Map<String, dynamic> json) =>
     SourceSearchFields(
@@ -118,6 +93,31 @@ Map<String, dynamic> _$SourceSearchFieldsToJson(SourceSearchFields instance) =>
       'serieUrlExcludes': instance.serieUrlExcludes,
       'serieImageCSSClass': instance.serieImageCSSClass,
       'serieImageExcludes': instance.serieImageExcludes,
+    };
+
+SourceSerieFields _$SourceSerieFieldsFromJson(Map<String, dynamic> json) =>
+    SourceSerieFields(
+      descriptionCSSClass:
+          json['descriptionCSSClass'] as String? ?? Placeholders.emptyString,
+      nameCSSClass: json['nameCSSClass'] as String? ?? Placeholders.emptyString,
+      descriptionExcludes:
+          (json['descriptionExcludes'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      nameExcludes:
+          (json['nameExcludes'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+    );
+
+Map<String, dynamic> _$SourceSerieFieldsToJson(SourceSerieFields instance) =>
+    <String, dynamic>{
+      'descriptionCSSClass': instance.descriptionCSSClass,
+      'nameCSSClass': instance.nameCSSClass,
+      'descriptionExcludes': instance.descriptionExcludes,
+      'nameExcludes': instance.nameExcludes,
     };
 
 SourceVideosFields _$SourceVideosFieldsFromJson(Map<String, dynamic> json) =>

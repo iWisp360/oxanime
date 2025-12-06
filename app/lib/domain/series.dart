@@ -41,35 +41,6 @@ class Serie {
 
   factory Serie.fromMap(Map<String, dynamic> map) => _$SerieFromJson(map);
 
-  static Source assignSource(String sourceUUID) {
-    late Source source;
-    for (var s in sources) {
-      if (s.configurationFields.uuid == sourceUUID) {
-        source = s;
-      } else {
-        throw Exception("Source not found for serie with uuid: $sourceUUID");
-      }
-    }
-    return source;
-  }
-
-  static Future<Serie> createSerie(SearchResult result) async {
-    final String? description = await _getSerieDescription(
-      (await SourceConnection.getBodyFrom(result.mainUrl)),
-      result.mainUrl,
-      assignSource(result.sourceUUID),
-    );
-    var serie = Serie(
-      name: result.name,
-      url: result.mainUrl,
-      sourceUUID: result.sourceUUID,
-      inputSource: assignSource(result.sourceUUID),
-      description: description ?? "No Description", // should be translated
-      imageUrl: result.imageUrl ?? Placeholders.emptyString,
-    );
-    return serie;
-  }
-
   Future<List<Chapter>> getChaptersRemote() async {
     List<Chapter> chapters = [];
     late Document sourceRequestDocument;
@@ -92,7 +63,7 @@ class Serie {
         .querySelectorAll(source.chaptersFields.urlsCSSClass)
         .map((e) => e.attributes[urlHtmlAttribute])
         .map((e) {
-          if (source.configurationFields.searchUrlResultsAbsolute == false) {
+          if (source.configurationFields.resultsUrlAbsolute == false) {
             if (e == null) return Placeholders.emptyString;
 
             return SourceConnection.makeUrlFromRelative(source.configurationFields.mainUrl, e);
@@ -155,6 +126,35 @@ class Serie {
   }
 
   Map<String, dynamic> toMap() => _$SerieToJson(this);
+
+  static Source assignSource(String sourceUUID) {
+    late Source source;
+    for (var s in sources) {
+      if (s.configurationFields.uuid == sourceUUID) {
+        source = s;
+      } else {
+        throw Exception("Source not found for serie with uuid: $sourceUUID");
+      }
+    }
+    return source;
+  }
+
+  static Future<Serie> createSerie(SearchResult result) async {
+    final String? description = await _getSerieDescription(
+      (await SourceConnection.getBodyFrom(result.mainUrl)),
+      result.mainUrl,
+      assignSource(result.sourceUUID),
+    );
+    var serie = Serie(
+      name: result.name,
+      url: result.mainUrl,
+      sourceUUID: result.sourceUUID,
+      inputSource: assignSource(result.sourceUUID),
+      description: description ?? "No Description", // should be translated
+      imageUrl: result.imageUrl ?? Placeholders.emptyString,
+    );
+    return serie;
+  }
 
   static Future<String?> _getSerieDescription(
     final String responseBody,
