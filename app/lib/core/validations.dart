@@ -16,8 +16,10 @@ class ValidateSource {
     sourceValidator._sourceChaptersFields(source);
     sourceValidator._sourceVideosFields(source);
 
-    logger.i(sourceValidator._reportSourceErrors());
-    logger.i(sourceValidator._reportSourceWarnings());
+    final warningsReport = sourceValidator._reportSourceWarnings();
+    final errorsReport = sourceValidator._reportSourceErrors();
+    logger.i(errorsReport.isEmpty ? errorsReport : "No Errors");
+    logger.i(warningsReport.isEmpty ? warningsReport : "No Warnings");
 
     bool isValid = sourceValidator.validationErrors.isEmpty;
 
@@ -152,7 +154,7 @@ class ValidateSource {
         );
       }
     } else {
-      _addError(fieldName, "'videosUrlParseMode' for videos is not defined.");
+      _addError(fieldName, "'videosUrlParseMode'for videos is not defined.");
     }
   }
 }

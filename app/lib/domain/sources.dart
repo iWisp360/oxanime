@@ -57,6 +57,7 @@ class Source {
   factory Source.fromMap(Map<String, dynamic> json) => _$SourceFromJson(json);
 
   bool isUsable() {
+    logger.i("Validating source '${configurationFields.name}'");
     bool result = ValidateSource.validate(this);
     logger.i(
       (result == false)
