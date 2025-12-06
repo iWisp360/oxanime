@@ -37,14 +37,14 @@ class Serie {
     this.description,
     this.chapters,
     required this.sourceUUID,
-  }) : source = inputSource ?? PlaceHolders.source;
+  }) : source = inputSource ?? Placeholders.source;
 
   factory Serie.fromMap(Map<String, dynamic> map) => _$SerieFromJson(map);
 
   static Source assignSource(String sourceUUID) {
     late Source source;
     for (var s in sources) {
-      if (s.uuid == sourceUUID) {
+      if (s.configurationFields.uuid == sourceUUID) {
         source = s;
       } else {
         throw Exception("Source not found for serie with uuid: $sourceUUID");
@@ -65,7 +65,7 @@ class Serie {
       sourceUUID: result.sourceUUID,
       inputSource: assignSource(result.sourceUUID),
       description: description ?? "No Description", // should be translated
-      imageUrl: result.imageUrl ?? PlaceHolders.emptyString,
+      imageUrl: result.imageUrl ?? Placeholders.emptyString,
     );
     return serie;
   }
@@ -84,18 +84,18 @@ class Serie {
     }
 
     var chapterIdentifiers = sourceRequestDocument
-        .querySelectorAll(source.searchSerieChaptersIdentifiersCSSClass)
+        .querySelectorAll(source.chaptersFields.identifiersCSSClass)
         .map((e) => e.text)
         .toList();
 
     var chapterUrls = sourceRequestDocument
-        .querySelectorAll(source.searchSerieChaptersUrlsCSSClass)
+        .querySelectorAll(source.chaptersFields.urlsCSSClass)
         .map((e) => e.attributes[urlHtmlAttribute])
         .map((e) {
-          if (source.searchSerieUrlResultsAbsolute == false) {
-            if (e == null) return PlaceHolders.emptyString;
+          if (source.configurationFields.searchUrlResultsAbsolute == false) {
+            if (e == null) return Placeholders.emptyString;
 
-            return SourceConnection.makeUrlFromRelative(source.mainUrl, e);
+            return SourceConnection.makeUrlFromRelative(source.configurationFields.mainUrl, e);
           }
         })
         .toList();
@@ -105,9 +105,11 @@ class Serie {
         sourceUUID: sourceUUID,
         identifier: chapterIdentifiers.elementAt(i),
         source:
-            sources.singleWhereOrNull((element) => element.uuid == sourceUUID) ??
-            PlaceHolders.source,
-        url: chapterUrls.elementAtOrNull(i) ?? PlaceHolders.emptyString,
+            sources.singleWhereOrNull(
+              (element) => element.configurationFields.uuid == sourceUUID,
+            ) ??
+            Placeholders.source,
+        url: chapterUrls.elementAtOrNull(i) ?? Placeholders.emptyString,
       );
       chapter.videoUrls = await chapter.getChapterVideoUrls();
       chapters.add(chapter);
@@ -159,9 +161,8 @@ class Serie {
     final String url,
     Source source,
   ) async {
-    if (source.searchSerieDescriptionCSSClass == null ||
-        source.searchSerieDescriptionCSSClass == PlaceHolders.emptyString) {
-      logger.w("searchSerieDescriptionCSSClass is null or empty. Returning fallback description");
+    if (source.serieFields.descriptionCSSClass == Placeholders.emptyString) {
+      logger.w("searchSerieDescriptionCSSClass is empty. Returning fallback description");
       return "No Description";
     }
 
@@ -171,8 +172,8 @@ class Serie {
           await (await SourceHtmlParser.create(
             html: await SourceConnection.getBodyFrom(url),
           )).getSerieCSSClassText(
-            source.searchSerieDescriptionCSSClass!,
-            source.searchSerieDescriptionExcludes ?? [],
+            source.serieFields.descriptionCSSClass,
+            source.serieFields.descriptionExcludes,
           );
     } catch (e) {
       logger.e("Couldn't get description of serie: $e");

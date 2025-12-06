@@ -10,9 +10,6 @@ import "package:oxanime/data/html_parser.dart";
 import "package:oxanime/data/networking.dart";
 
 class StreamTape with VideoSourceParameters {
-  @override
-  bool get needsAWebView => false;
-
   static Future<String> getVideoFromUrl(final String url) async {
     late final Client client;
     late final String responseBody;
@@ -38,7 +35,7 @@ class StreamTape with VideoSourceParameters {
     final secondDelimiter = "+ ('xcd";
 
     if (elementSelectFirst == null || !responseBody.contains(firstDelimiter)) {
-      return PlaceHolders.emptyString;
+      throw VideoUrlParserException(kind: VideoUrlParserExceptionKind.videoNotFoundException);
     }
 
     final strSubstringAfter = elementSelectFirst.text.substring(
@@ -48,7 +45,9 @@ class StreamTape with VideoSourceParameters {
     final firstQuoteIndex = strSubstringAfter.indexOf("'");
     final secondDelimiterIndex = strSubstringAfter.indexOf(secondDelimiter);
 
-    if (firstQuoteIndex == -1 || secondDelimiterIndex == -1) return PlaceHolders.emptyString;
+    if (firstQuoteIndex == -1 || secondDelimiterIndex == -1) {
+      throw VideoUrlParserException(stackTrace: StackTrace.current);
+    }
 
     final afterSecondDelimiter = strSubstringAfter.substring(
       secondDelimiterIndex + secondDelimiter.length,
@@ -56,7 +55,9 @@ class StreamTape with VideoSourceParameters {
 
     final secondQuoteIndex = afterSecondDelimiter.indexOf("'");
 
-    if (secondQuoteIndex == -1) return PlaceHolders.emptyString;
+    if (secondQuoteIndex == -1) {
+      throw VideoUrlParserException(stackTrace: StackTrace.current);
+    }
 
     final part1 = strSubstringAfter.substring(0, firstQuoteIndex);
     final part2 = afterSecondDelimiter.substring(0, secondQuoteIndex);
@@ -66,7 +67,7 @@ class StreamTape with VideoSourceParameters {
 }
 
 mixin VideoSourceParameters {
-  bool get needsAWebView;
+  bool get needsAWebView => false;
 }
 
 // In this context, a parser is the utility that brings you the content you need to watch a serie chapter,
@@ -75,20 +76,106 @@ mixin VideoSourceParameters {
 // - URL or a List of URLs of the static content of the video
 // - Video Quality Options -> not implemented
 // - Video Duration -> MediaKit does this, so these things actually don't
+class VideoUrlParser {
+  static VideoUrlParsers assignVideoSourceById(final String id) {
+    switch (id) {
+      case "yourupload":
+        return VideoUrlParsers.yourUpload;
+      case "stape":
+        return VideoUrlParsers.streamTape;
+      default:
+        return VideoUrlParsers.none;
+    }
+  }
 
-class VideoSources {
-  static List<String> videoSourcesDomainNames(VideoSourceParsers videoSource) {
+  static VideoUrlParsers assignVideoSourceByUrl(final String url) {
+    for (final source in VideoUrlParsers.values) {
+      final domainName = videoSourcesDomainNames(source);
+      if (url.contains(domainName)) {
+        return source;
+      }
+    }
+    return VideoUrlParsers.none;
+  }
+
+  // if this returns null, a webview is required
+  static Future<String?> parseVideoUrl(final String url, VideoUrlParsers parser) async {
+    switch (parser) {
+      case VideoUrlParsers.yourUpload:
+        return await YourUpload.getVideoFromUrl(url);
+      case VideoUrlParsers.streamTape:
+        return await StreamTape.getVideoFromUrl(url);
+      case VideoUrlParsers.none:
+        return null;
+    }
+  }
+
+  static String videoSourcesDomainNames(VideoUrlParsers videoSource) {
     return switch (videoSource) {
-      VideoSourceParsers.yourUpload => ["yourupload.com"],
-      VideoSourceParsers.streamTape => ["streamtape.com"],
+      VideoUrlParsers.yourUpload => "yourupload.com",
+      VideoUrlParsers.streamTape => "streamtape.com",
+      VideoUrlParsers.none => Placeholders.emptyString,
     };
+  }
+
+  static List<String> allVideoSourcesDomainNames() {
+    List<String> results = [];
+
+    for (final parser in VideoUrlParsers.values) {
+      results.add(videoSourcesDomainNames(parser));
+    }
+    return results;
+  }
+
+  static Future<List<String>> sortVideoUrls(
+    List<String> initialUrls,
+    final List<String>? videoSourcePriority,
+  ) async {
+    if (videoSourcePriority == null || videoSourcePriority.isEmpty) {
+      return initialUrls;
+    }
+
+    List<String> sortedUrls = [];
+
+    for (final priority in videoSourcePriority) {
+      if (initialUrls.isEmpty) break;
+      final videoSource = assignVideoSourceById(priority);
+      final domainName = videoSourcesDomainNames(videoSource);
+
+      for (var url in initialUrls) {
+        if (url.contains(domainName)) {
+          sortedUrls.add(url);
+          initialUrls.removeWhere((element) => element == url);
+        }
+      }
+    }
+
+    if (initialUrls.isNotEmpty) {
+      for (var url in initialUrls) {
+        sortedUrls.add(url);
+      }
+    }
+
+    return sortedUrls;
+  }
+}
+
+class StreamWish with VideoSourceParameters {
+  static Future<String> getVideoFromUrl(final String url) async {
+    final client = Client();
+    final request = Request("GET", Uri.parse(url));
+
+    request.headers["user-agent"] = HttpValues.userAgent;
+    request.headers["referer"] = "https://streamwish.to";
+
+    final elementSelectFirst = await Response.fromStream(await client.send(request));
+
+    print(elementSelectFirst.body);
+    return Placeholders.emptyString;
   }
 }
 
 class YourUpload with VideoSourceParameters {
-  @override
-  bool get needsAWebView => false;
-
   static Future<String> getVideoFromUrl(final String url) async {
     const startMark = "file: '";
     const endMark = "',";
@@ -99,7 +186,7 @@ class YourUpload with VideoSourceParameters {
       request = Request("GET", Uri.parse(url));
 
       request.headers["referer"] = SourceConnection.makeUrlFromDomainName(
-        VideoSources.videoSourcesDomainNames(VideoSourceParsers.yourUpload)[0],
+        VideoUrlParser.videoSourcesDomainNames(VideoUrlParsers.yourUpload)[0],
       );
     } catch (e, s) {
       throw VideoUrlParserException(

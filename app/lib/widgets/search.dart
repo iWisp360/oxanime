@@ -38,7 +38,7 @@ class AnimeResults extends SearchDelegate {
               return ListTile(
                 subtitle: Text(result.name),
                 leading: Image.network(
-                  result.imageUrl ?? PlaceHolders.emptyString,
+                  result.imageUrl ?? Placeholders.emptyString,
                   fit: BoxFit.contain,
                   width: 50,
                   height: 100,

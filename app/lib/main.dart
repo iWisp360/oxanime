@@ -8,6 +8,7 @@ import "package:media_kit/media_kit.dart";
 import "package:oxanime/core/constants.dart";
 import "package:oxanime/core/logs.dart";
 import "package:oxanime/core/preferences.dart";
+import "package:oxanime/data/video_url_parsers.dart";
 import "package:oxanime/domain/sources.dart";
 import "package:oxanime/presentation/home.dart";
 import "package:path/path.dart";
@@ -31,7 +32,7 @@ void main() async {
         logger.e("Sources couldn't be retrieved from local storage: $e");
         sourcesInitSuccess = false;
         // WIP: Notify this through UI
-        sources = [PlaceHolders.source];
+        sources = [Placeholders.source];
       }
     }
     // WIP: Here too
@@ -49,6 +50,7 @@ void main() async {
     logger.i("Disabling Logs");
     logger.close();
   }
+  StreamWish.getVideoFromUrl("https://streamwish.to/e/sguk2ap3w5ky");
 
   runApp(OxAnimeMainApp());
 }

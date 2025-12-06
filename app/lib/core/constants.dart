@@ -1,4 +1,3 @@
-import 'package:oxanime/core/enums.dart';
 import 'package:oxanime/domain/sources.dart';
 
 class HtmlValues {
@@ -7,29 +6,26 @@ class HtmlValues {
   static const src = "src";
 }
 
-class PlaceHolders {
+class HttpValues {
+  static const userAgent = "Mozilla/5.0 (X11; Linux x86_64; rv:145.0) Gecko/20100101 Firefox/145.0";
+}
+
+class Placeholders {
   static const uuid = "completely-invalid-uuid";
   static const url = "https://mock.example.com";
   static const emptyString = "";
   static final source = Source(
-    uuid: PlaceHolders.uuid,
-    name: "Placeholder Source",
-    mainUrl: PlaceHolders.url,
-    searchUrl: PlaceHolders.url,
+    configurationFields: SourceConfigurationFields(
+      enabled: false,
+      mainUrl: Placeholders.emptyString,
+      searchUrl: Placeholders.emptyString,
+      name: "Placeholder Source",
+    ),
+    searchFields: SourceSearchFields(serieUrlCSSClass: Placeholders.emptyString),
 
-    chaptersVideosJsonListStartPattern: PlaceHolders.emptyString,
-    chaptersVideosJsonListEndPattern: PlaceHolders.emptyString,
-    chaptersVideosJsonListKey: PlaceHolders.emptyString,
-    chaptersVideosUrlParseMode: ChaptersVideosUrlParseModes.empty,
-    chaptersVideosUrlLocation: ChaptersVideosUrlLocation.empty,
-    videoSourcesPriority: const [],
-
-    searchSerieNameCSSClass: PlaceHolders.emptyString,
-    searchSerieUrlCSSClass: PlaceHolders.emptyString,
-    searchSerieImageCSSClass: PlaceHolders.emptyString,
-    searchSerieChaptersIdentifiersCSSClass: PlaceHolders.emptyString,
-    searchSerieChaptersUrlsCSSClass: PlaceHolders.emptyString,
-    searchSerieDescriptionCSSClass: PlaceHolders.emptyString,
+    serieFields: SourceSerieFields(),
+    chaptersFields: SourceChaptersFields(),
+    videosFields: SourceVideosFields(),
   );
 }
 
@@ -38,8 +34,8 @@ class FileNames {
   static const seriesJson = "series.json";
 }
 
-class RequiredValues {
-  static const forSources = """
+class AdviceMessages {
+  static const forSourcesIfNotValid = """
   enabled (if not set, it is assumed to be false)
   mainUrl
   searchUrl
@@ -59,6 +55,6 @@ class RequiredValues {
     however, you may also want to specify other fields for the source
     to fully integrate. Check the wiki at <wikiUrlHere>.
 
-  Note: If you pass an UUID manually, this UUID should be valid.
+  Note: If you pass an UUID manually, this UUID should be valid, otherwise, the entire source won't be valid.
   """;
 }

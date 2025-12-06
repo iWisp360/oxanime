@@ -9,6 +9,7 @@ import "package:oxanime/core/constants.dart";
 import "package:oxanime/core/enums.dart";
 import "package:oxanime/core/logs.dart";
 import "package:oxanime/data/html_parser.dart";
+import "package:oxanime/data/video_url_parsers.dart";
 import "package:oxanime/domain/sources.dart";
 
 part "chapters.g.dart";
@@ -23,11 +24,10 @@ class Chapter {
   final Source _source;
 
   Chapter({required this.identifier, required this.url, required this.sourceUUID, Source? source})
-    : _source = source ?? PlaceHolders.source;
+    : _source = source ?? Placeholders.source;
 
   factory Chapter.fromJson(Map<String, dynamic> map) => _$ChapterFromJson(map);
 
-  // this function should be reverted to 4c4e47110f
   Future<List<String>> getChapterVideoUrls() async {
     List<String> videoUrls = [];
 
@@ -42,13 +42,13 @@ class Chapter {
       rethrow;
     }
 
-    switch (_source.chaptersVideosUrlParseMode) {
+    switch (_source.videosFields.videosUrlParseMode) {
       case ChaptersVideosUrlParseModes.jsonList:
         final Element? element = HtmlParser(responseBody)
             .parse()
             .querySelectorAll(scriptHtmlCSSClass)
             .firstWhereOrNull(
-              (element) => element.text.contains(_source.chaptersVideosJsonListStartPattern),
+              (element) => element.text.contains(_source.videosFields.jsonListStartPattern),
             );
 
         if (element == null) {
@@ -61,10 +61,10 @@ class Chapter {
           return videoUrls;
         } else {
           int startOfUrlIndex = elementSelectFirstData.indexOf(
-            _source.chaptersVideosJsonListStartPattern,
+            _source.videosFields.jsonListStartPattern,
           );
           int endOfUrlIndex = elementSelectFirstData.indexOf(
-            _source.chaptersVideosJsonListEndPattern,
+            _source.videosFields.jsonListEndPattern,
             startOfUrlIndex,
           );
 
@@ -75,14 +75,13 @@ class Chapter {
 
           var jsonList = jsonDecode(
             elementSelectFirstData.substring(
-              startOfUrlIndex + _source.chaptersVideosJsonListStartPattern.length,
+              startOfUrlIndex + _source.videosFields.jsonListStartPattern.length,
               endOfUrlIndex,
             ),
           );
           for (var object in jsonList) {
-            final String? videoUrl = object[_source.chaptersVideosJsonListKey];
+            final String? videoUrl = object[_source.videosFields.jsonListKeyForVideosUrl];
             if (videoUrl == null) continue;
-            if (!videoUrl.contains("streamtape.com")) continue; // remove
             videoUrls.add(videoUrl);
           }
         }
@@ -92,7 +91,7 @@ class Chapter {
         return videoUrls;
     }
 
-    return videoUrls;
+    return VideoUrlParser.sortVideoUrls(videoUrls, _source.videosFields.videoSourcesPriority);
   }
 
   Map<String, dynamic> toMap() => _$ChapterToJson(this);

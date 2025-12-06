@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:media_kit/media_kit.dart";
 import "package:media_kit_video/media_kit_video.dart";
-import "package:oxanime/data/video_url_parser.dart";
+import "package:oxanime/data/video_url_parsers.dart";
 
 class VideoPlayerScreen extends StatefulWidget {
   final String videoUrl;

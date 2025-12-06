@@ -34,7 +34,7 @@ class SerieScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              serie.description ?? PlaceHolders.emptyString,
+              serie.description ?? Placeholders.emptyString,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 24),
