@@ -35,7 +35,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   Future<void> playVideo() async {
     player.open(
-      Media(await (StreamWish.getVideoFromUrl(widget.videoUrl)), httpHeaders: widget.headers),
+      Media(await (StreamTape.getVideoFromUrl(widget.videoUrl)), httpHeaders: widget.headers),
     );
   }
 }

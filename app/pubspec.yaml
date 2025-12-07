@@ -2,7 +2,7 @@ name: animebox
 description: "Manage your Anime."
 publish_to: "none"
 
-version: 0.1.2+3
+version: 0.1.3+4
 
 environment:
   sdk: ^3.10.1

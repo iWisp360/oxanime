@@ -83,7 +83,9 @@ class SerieScreen extends StatelessWidget {
                                             return Center(child: Text("Loading video failed"));
                                           }
                                           return VideoPlayerScreen(
-                                            videoUrl: chaptersUrls.first,
+                                            videoUrl: chaptersUrls.firstWhere(
+                                              (element) => element.contains("streamtape"),
+                                            ),
                                             headers: headers,
                                           );
                                         } else {
