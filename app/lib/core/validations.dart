@@ -3,11 +3,23 @@ import 'package:animebox/core/enums.dart';
 import 'package:animebox/core/logs.dart';
 import 'package:animebox/domain/sources.dart';
 
+class ValidationResult {
+  final bool result;
+  final String errorsReport;
+  final String warningsReport;
+
+  ValidationResult({
+    required this.result,
+    required this.errorsReport,
+    required this.warningsReport,
+  });
+}
+
 class ValidateSource {
   final Map<String, List<String>> validationErrors = {};
   final Map<String, List<String>> validationWarnings = {};
 
-  static bool validate(Source source) {
+  static ValidationResult validate(Source source) {
     final sourceValidator = ValidateSource();
 
     sourceValidator._sourceConfigurationFields(source);
@@ -23,7 +35,11 @@ class ValidateSource {
 
     bool isValid = sourceValidator.validationErrors.isEmpty;
 
-    return isValid;
+    return ValidationResult(
+      result: isValid,
+      errorsReport: errorsReport,
+      warningsReport: warningsReport,
+    );
   }
 
   void _addError(String fieldName, String message) {

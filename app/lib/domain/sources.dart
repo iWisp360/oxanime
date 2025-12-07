@@ -19,8 +19,9 @@ late bool sourcesInitSuccess;
 class SearchResult {
   final String name;
   final String mainUrl;
-  String? imageUrl;
+  final String? imageUrl;
   final String sourceUUID;
+
   SearchResult({
     required this.sourceUUID,
     this.imageUrl,
@@ -58,13 +59,13 @@ class Source {
 
   bool isUsable() {
     logger.i("Validating source '${configurationFields.name}'");
-    bool result = ValidateSource.validate(this);
+    var validation = ValidateSource.validate(this);
     logger.i(
-      (result == false)
+      (validation.result == false)
           ? "${configurationFields.name} is not usable"
           : "${configurationFields.name} is usable",
     );
-    return result;
+    return validation.result;
   }
 
   Future<void> pop() async {
