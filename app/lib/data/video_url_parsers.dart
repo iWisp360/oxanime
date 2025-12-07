@@ -106,6 +106,8 @@ class VideoUrlParser {
         return await YourUpload.getVideoFromUrl(url);
       case VideoUrlParsers.streamTape:
         return await StreamTape.getVideoFromUrl(url);
+      case VideoUrlParsers.streamWish:
+        return await StreamWish.getVideoFromUrl(url);
       case VideoUrlParsers.none:
         return null;
     }
@@ -115,6 +117,7 @@ class VideoUrlParser {
     return switch (videoSource) {
       VideoUrlParsers.yourUpload => "yourupload.com",
       VideoUrlParsers.streamTape => "streamtape.com",
+      VideoUrlParsers.streamWish => "streamwish.to",
       VideoUrlParsers.none => Placeholders.emptyString,
     };
   }
