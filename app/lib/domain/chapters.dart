@@ -36,6 +36,7 @@ class Chapter {
     try {
       final client = Client();
       final response = await client.get(Uri.parse(url));
+      client.close();
       responseBody = response.body;
     } catch (e) {
       logger.e("Connection error while getting chapter video urls: $e");

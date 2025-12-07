@@ -11,9 +11,11 @@ Serie _$SerieFromJson(Map<String, dynamic> json) => Serie(
   url: json['url'] as String,
   imageUrl: json['imageUrl'] as String,
   description: json['description'] as String?,
-  chapters: (json['chapters'] as List<dynamic>?)
-      ?.map((e) => Chapter.fromJson(e as Map<String, dynamic>))
-      .toList(),
+  chapters:
+      (json['chapters'] as List<dynamic>?)
+          ?.map((e) => Chapter.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   sourceUUID: json['sourceUUID'] as String,
 );
 

@@ -38,8 +38,7 @@ class _OxAnimeHomeScreenState extends State<OxAnimeHomeScreen> {
                 query: "Date A Live",
               );
 
-              final serie = await Serie.createSerie(selectedResult);
-              serie.chapters = await serie.getChaptersRemote();
+              final serie = Serie.createSerie(selectedResult);
               if (!mounted) return;
               Navigator.push(
                 context,

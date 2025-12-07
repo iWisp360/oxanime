@@ -26,7 +26,7 @@ class Serie {
   final String url;
   final String imageUrl;
   String? description;
-  List<Chapter>? chapters;
+  late List<Chapter> chapters;
   final String sourceUUID;
 
   Serie({
@@ -35,7 +35,7 @@ class Serie {
     required this.url,
     required this.imageUrl,
     this.description,
-    this.chapters,
+    this.chapters = const [],
     required this.sourceUUID,
   }) : source = inputSource ?? Placeholders.source;
 
@@ -82,7 +82,7 @@ class Serie {
             Placeholders.source,
         url: chapterUrls.elementAtOrNull(i) ?? Placeholders.emptyString,
       );
-      chapter.videoUrls = await chapter.getChapterVideoUrls();
+
       chapters.add(chapter);
     }
     return chapters;
