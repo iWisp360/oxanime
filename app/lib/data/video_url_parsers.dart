@@ -1,13 +1,13 @@
-import "package:collection/collection.dart";
-import "package:html/dom.dart";
-import "package:html/parser.dart";
-import "package:http/http.dart";
 import "package:animebox/core/constants.dart";
 import "package:animebox/core/enums.dart";
 import "package:animebox/core/exceptions.dart";
 import "package:animebox/core/logs.dart";
 import "package:animebox/data/html_parser.dart";
 import "package:animebox/data/networking.dart";
+import "package:collection/collection.dart";
+import "package:html/dom.dart";
+import "package:html/parser.dart";
+import "package:http/http.dart";
 import "package:js_unpack/js_unpack.dart";
 
 class StreamTape with VideoSourceParameters {
@@ -25,6 +25,7 @@ class StreamTape with VideoSourceParameters {
         kind: VideoUrlParserExceptionKind.responseReceiveException,
       );
     }
+    client.close();
 
     final elementSelectFirst = (await SourceHtmlParser.create(html: responseBody)).serializedHtml
         .querySelectorAll(scriptHtmlCSSClass)
@@ -67,6 +68,43 @@ class StreamTape with VideoSourceParameters {
   }
 }
 
+class StreamWish with VideoSourceParameters {
+  static final m3u8Regex = RegExp("https[^\"]*m3u8[^\"]*", caseSensitive: false);
+  static Future<String> getVideoFromUrl(final String url) async {
+    final modifiedUrl = url.replaceFirst("streamwish.to", "habetar.com");
+
+    final client = Client();
+    final request = Request("GET", Uri.parse(modifiedUrl));
+
+    request.headers["user-agent"] = HttpValues.userAgent;
+    request.headers["referer"] = "https://streamwish.to/";
+
+    final elementSelectFirst =
+        (await SourceHtmlParser.create(
+              html: (await Response.fromStream(await client.send(request))).body,
+            )).serializedHtml
+            .querySelectorAll(scriptHtmlCSSClass)
+            .firstWhereOrNull((element) => element.text.contains("eval(function(p,a,c"));
+
+    client.close();
+
+    if (elementSelectFirst == null) {
+      throw VideoUrlParserException(kind: VideoUrlParserExceptionKind.videoNotFoundException);
+    }
+
+    final unpackedJs = JsUnpack(elementSelectFirst.text).unpack();
+
+    // this variable's name looks cool
+    final m3u8UrlGroupZero = m3u8Regex.firstMatch(unpackedJs)?.group(0);
+
+    if (m3u8UrlGroupZero == null) {
+      throw VideoUrlParserException(kind: VideoUrlParserExceptionKind.videoNotFoundException);
+    } else {
+      return m3u8UrlGroupZero;
+    }
+  }
+}
+
 mixin VideoSourceParameters {
   bool get needsAWebView => false;
 }
@@ -78,6 +116,15 @@ mixin VideoSourceParameters {
 // - Video Quality Options -> not implemented
 // - Video Duration -> MediaKit does this, so these things actually don't
 class VideoUrlParser {
+  static List<String> allVideoSourcesDomainNames() {
+    List<String> results = [];
+
+    for (final parser in VideoUrlParsers.values) {
+      results.add(videoSourcesDomainNames(parser));
+    }
+    return results;
+  }
+
   static VideoUrlParsers assignVideoSourceById(final String id) {
     switch (id) {
       case "yourupload":
@@ -113,24 +160,6 @@ class VideoUrlParser {
     }
   }
 
-  static String videoSourcesDomainNames(VideoUrlParsers videoSource) {
-    return switch (videoSource) {
-      VideoUrlParsers.yourUpload => "yourupload.com",
-      VideoUrlParsers.streamTape => "streamtape.com",
-      VideoUrlParsers.streamWish => "streamwish.to",
-      VideoUrlParsers.none => Placeholders.emptyString,
-    };
-  }
-
-  static List<String> allVideoSourcesDomainNames() {
-    List<String> results = [];
-
-    for (final parser in VideoUrlParsers.values) {
-      results.add(videoSourcesDomainNames(parser));
-    }
-    return results;
-  }
-
   static Future<List<String>> sortVideoUrls(
     List<String> initialUrls,
     final List<String>? videoSourcePriority,
@@ -162,40 +191,14 @@ class VideoUrlParser {
 
     return sortedUrls;
   }
-}
 
-class StreamWish with VideoSourceParameters {
-  static final m3u8Regex = RegExp("https[^\"]*m3u8[^\"]*", caseSensitive: false);
-  static Future<String> getVideoFromUrl(final String url) async {
-    final modifiedUrl = url.replaceFirst("streamwish.to", "habetar.com");
-
-    final client = Client();
-    final request = Request("GET", Uri.parse(modifiedUrl));
-
-    request.headers["user-agent"] = HttpValues.userAgent;
-    request.headers["referer"] = "https://streamwish.to/";
-
-    final elementSelectFirst =
-        (await SourceHtmlParser.create(
-              html: (await Response.fromStream(await client.send(request))).body,
-            )).serializedHtml
-            .querySelectorAll(scriptHtmlCSSClass)
-            .firstWhereOrNull((element) => element.text.contains("eval(function(p,a,c"));
-
-    if (elementSelectFirst == null) {
-      throw VideoUrlParserException(kind: VideoUrlParserExceptionKind.videoNotFoundException);
-    }
-
-    final unpackedJs = JsUnpack(elementSelectFirst.text).unpack();
-
-    // this variable's name looks cool
-    final m3u8UrlGroupZero = m3u8Regex.firstMatch(unpackedJs)?.group(0);
-
-    if (m3u8UrlGroupZero == null) {
-      throw VideoUrlParserException(kind: VideoUrlParserExceptionKind.videoNotFoundException);
-    } else {
-      return m3u8UrlGroupZero;
-    }
+  static String videoSourcesDomainNames(VideoUrlParsers videoSource) {
+    return switch (videoSource) {
+      VideoUrlParsers.yourUpload => "yourupload.com",
+      VideoUrlParsers.streamTape => "streamtape.com",
+      VideoUrlParsers.streamWish => "streamwish.to",
+      VideoUrlParsers.none => Placeholders.emptyString,
+    };
   }
 }
 
@@ -219,6 +222,9 @@ class YourUpload with VideoSourceParameters {
         kind: VideoUrlParserExceptionKind.requestMakeException,
       );
     }
+
+    client.close();
+
     late final Response response;
     try {
       response = await Response.fromStream(await client.send(request));
