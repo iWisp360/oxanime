@@ -3,6 +3,7 @@ import 'package:animebox/domain/sources.dart';
 class FileNames {
   static const sourcesJson = "sources.json";
   static const seriesJson = "series.json";
+  static const logsFile = "animebox.log";
 }
 
 class HtmlValues {

@@ -1,5 +1,6 @@
 import "dart:io";
 
+import "package:animebox/core/constants.dart";
 import "package:flutter/foundation.dart";
 import "package:logger/logger.dart";
 import "package:path_provider/path_provider.dart";
@@ -8,7 +9,7 @@ Logger logger = Logger();
 
 Future<File> _getLogFile() async {
   final logFile = File(
-    await (getApplicationCacheDirectory().then((value) => value.path)) + ("/oxanime.log"),
+    await (getApplicationCacheDirectory().then((value) => value.path)) + ("/${FileNames.logsFile}"),
   );
   return logFile;
 }
@@ -24,6 +25,7 @@ class AnimeBoxLogger {
     final filter = kDebugMode ? DevelopmentFilter() : ProductionFilter();
     if (await logFile.exists() == true) {
       await logFile.delete();
+      await logFile.create();
     }
     return Logger(
       level: Level.all,

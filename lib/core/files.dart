@@ -11,7 +11,7 @@ import "package:path_provider/path_provider.dart";
 ///
 /// See https://pub.dev/packages/path_provider
 ///
-/// On linux, it should be located at ~/.local/share/page.codeberg.oxanime/
+/// On linux, it should be located at ~/.local/share/io.github.iwisp360.animebox/
 ///
 Future<String> getDataDirectoryWithJoined(String pattern) async {
   try {
