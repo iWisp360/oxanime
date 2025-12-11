@@ -9,7 +9,7 @@ import "package:animebox/core/constants.dart";
 import "package:animebox/core/enums.dart";
 import "package:animebox/core/logs.dart";
 import "package:animebox/data/html_parser.dart";
-import "package:animebox/data/video_url_parsers.dart";
+import "package:animebox/data/video_url_parsers/video_url_parsers.dart";
 import "package:animebox/domain/sources.dart";
 
 part "chapters.g.dart";
