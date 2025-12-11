@@ -11,12 +11,12 @@ mixin VideoSourceParameters {
   bool get needsAWebView => false;
 }
 
-class Video {
+class AnimeBoxVideo {
   VideoUrlParsers assignedParser;
   String url;
   Map<String, String>? headers;
 
-  Video({required this.url, required this.assignedParser, this.headers});
+  AnimeBoxVideo({required this.url, required this.assignedParser, this.headers});
 }
 
 // In this context, a parser is the utility that brings you the content you need to watch a serie chapter,
@@ -59,7 +59,7 @@ class VideoUrlParser {
   }
 
   // if this returns null, a webview is required
-  static Future<String?> parseVideoUrl(final String url, VideoUrlParsers parser) async {
+  static Future<AnimeBoxVideo?> parseVideoUrl(final String url, VideoUrlParsers parser) async {
     switch (parser) {
       case VideoUrlParsers.yourUpload:
         return await YourUpload.getVideoFromUrl(url);

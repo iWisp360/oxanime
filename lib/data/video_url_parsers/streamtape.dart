@@ -1,3 +1,4 @@
+import "package:animebox/core/enums.dart";
 import "package:animebox/core/exceptions.dart";
 import "package:animebox/data/html_parser.dart";
 import "package:animebox/data/video_url_parsers/video_url_parsers.dart";
@@ -5,7 +6,7 @@ import "package:collection/collection.dart";
 import "package:http/http.dart";
 
 class StreamTape with VideoSourceParameters {
-  static Future<String> getVideoFromUrl(final String url) async {
+  static Future<AnimeBoxVideo> getVideoFromUrl(final String url) async {
     late final Client client;
     late final String responseBody;
 
@@ -58,6 +59,6 @@ class StreamTape with VideoSourceParameters {
     final part1 = strSubstringAfter.substring(0, firstQuoteIndex);
     final part2 = afterSecondDelimiter.substring(0, secondQuoteIndex);
 
-    return "https:$part1$part2";
+    return AnimeBoxVideo(url: "https:$part1$part2", assignedParser: VideoUrlParsers.streamTape);
   }
 }

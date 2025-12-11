@@ -9,7 +9,7 @@ import "package:html/parser.dart";
 import "package:http/http.dart";
 
 class YourUpload with VideoSourceParameters {
-  static Future<String> getVideoFromUrl(final String url) async {
+  static Future<AnimeBoxVideo> getVideoFromUrl(final String url) async {
     const startMark = "file: '";
     const endMark = "',";
     late final Client client;
@@ -58,23 +58,28 @@ class YourUpload with VideoSourceParameters {
       }
 
       if (elementSelectFirst == null) {
-        return "";
+        throw VideoUrlParserException(kind: VideoUrlParserExceptionKind.videoNotFoundException);
       }
 
       final String elementSelectFirstData = elementSelectFirst.text;
 
       if (elementSelectFirstData.isEmpty) {
-        return "";
+        throw VideoUrlParserException(kind: VideoUrlParserExceptionKind.videoNotFoundException);
       } else {
         int startOfUrlIndex = elementSelectFirstData.indexOf(startMark);
         int endOfUrlIndex = elementSelectFirstData.indexOf(endMark);
 
         if (startOfUrlIndex == -1 || endOfUrlIndex == -1) {
           logger.w("No pattern didn't match startMark or endMark, returning null");
-          return "";
+          throw VideoUrlParserException(kind: VideoUrlParserExceptionKind.videoNotFoundException);
         }
 
-        return elementSelectFirstData.substring(startOfUrlIndex + startMark.length, endOfUrlIndex);
+        final videoUrl = elementSelectFirstData.substring(
+          startOfUrlIndex + startMark.length,
+          endOfUrlIndex,
+        );
+
+        return AnimeBoxVideo(url: videoUrl, assignedParser: VideoUrlParsers.yourUpload);
       }
     } catch (e, s) {
       throw VideoUrlParserException(

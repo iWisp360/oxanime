@@ -1,4 +1,5 @@
 import "package:animebox/core/constants.dart";
+import "package:animebox/core/enums.dart";
 import "package:animebox/core/exceptions.dart";
 import "package:animebox/data/html_parser.dart";
 import "package:animebox/data/video_url_parsers/video_url_parsers.dart";
@@ -8,7 +9,7 @@ import "package:js_unpack/js_unpack.dart";
 
 class StreamWish with VideoSourceParameters {
   static final m3u8Regex = RegExp("https[^\"]*m3u8[^\"]*", caseSensitive: false);
-  static Future<String> getVideoFromUrl(final String url) async {
+  static Future<AnimeBoxVideo> getVideoFromUrl(final String url) async {
     final modifiedUrl = url.replaceFirst("streamwish.to", "habetar.com");
 
     final client = Client();
@@ -37,7 +38,11 @@ class StreamWish with VideoSourceParameters {
     if (m3u8UrlGroupZero == null) {
       throw VideoUrlParserException(kind: VideoUrlParserExceptionKind.videoNotFoundException);
     } else {
-      return m3u8UrlGroupZero;
+      return AnimeBoxVideo(
+        url: m3u8UrlGroupZero,
+        headers: request.headers,
+        assignedParser: VideoUrlParsers.streamWish,
+      );
     }
   }
 }
