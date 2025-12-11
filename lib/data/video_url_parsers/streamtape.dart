@@ -1,10 +1,7 @@
 import "package:animebox/core/exceptions.dart";
-
 import "package:animebox/data/html_parser.dart";
-
 import "package:animebox/data/video_url_parsers/video_url_parsers.dart";
 import "package:collection/collection.dart";
-
 import "package:http/http.dart";
 
 class StreamTape with VideoSourceParameters {

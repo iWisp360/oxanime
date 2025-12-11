@@ -43,7 +43,7 @@ class VideoUrlParserException implements Exception {
       "Error while parsing response from Video Url${_throwError(errorMsg, stackTrace)}",
     VideoUrlParserExceptionKind.videoNotFoundException =>
       "Error while parsing response from Video Url"
-          "(Probably the video couldn't be found in this source)"
+          "(Probably the video couldn't be found in this source, or the parser is broken)"
           "${_throwError(errorMsg, stackTrace)}",
     VideoUrlParserExceptionKind.otherException =>
       "Error from a video url parser${_throwError(errorMsg, stackTrace)}",

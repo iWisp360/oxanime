@@ -1,12 +1,12 @@
-import "package:http/http.dart";
-import "package:animebox/data/networking.dart";
-import "package:animebox/data/video_url_parsers/video_url_parsers.dart";
 import "package:animebox/core/enums.dart";
 import "package:animebox/core/exceptions.dart";
+import "package:animebox/core/logs.dart";
+import "package:animebox/data/html_parser.dart";
+import "package:animebox/data/networking.dart";
+import "package:animebox/data/video_url_parsers/video_url_parsers.dart";
 import "package:html/dom.dart";
 import "package:html/parser.dart";
-import "package:animebox/data/html_parser.dart";
-import "package:animebox/core/logs.dart";
+import "package:http/http.dart";
 
 class YourUpload with VideoSourceParameters {
   static Future<String> getVideoFromUrl(final String url) async {
@@ -16,11 +16,10 @@ class YourUpload with VideoSourceParameters {
     late final Request request;
     try {
       client = Client();
-      request = Request("GET", Uri.parse(url));
-
-      request.headers["referer"] = SourceConnection.makeUrlFromDomainName(
-        VideoUrlParser.videoSourcesDomainNames(VideoUrlParsers.yourUpload)[0],
-      );
+      request = Request("GET", Uri.parse(url))
+        ..headers["referer"] = SourceConnection.makeUrlFromDomainName(
+          VideoUrlParser.videoSourcesDomainNames(VideoUrlParsers.yourUpload)[0],
+        );
     } catch (e, s) {
       throw VideoUrlParserException(
         errorMsg: e,

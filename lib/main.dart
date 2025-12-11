@@ -3,13 +3,13 @@
 
 import "dart:io";
 
-import "package:animebox/presentation/app.dart";
-import "package:animebox/widgets/themes.dart";
-import "package:flutter/material.dart";
 import "package:animebox/core/constants.dart";
 import "package:animebox/core/logs.dart";
 import "package:animebox/core/preferences.dart";
 import "package:animebox/domain/sources.dart";
+import "package:animebox/presentation/app.dart";
+import "package:animebox/widgets/themes.dart";
+import "package:flutter/material.dart";
 import "package:path/path.dart";
 import "package:path_provider/path_provider.dart";
 import "package:provider/provider.dart";

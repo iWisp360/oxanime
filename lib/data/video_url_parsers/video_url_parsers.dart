@@ -1,12 +1,22 @@
+// Credits to github.com/yuzono/, his extensions helped me a lot to build these parsers
+
 import "package:animebox/core/constants.dart";
 import "package:animebox/core/enums.dart";
-
-import "package:animebox/data/video_url_parsers/yourupload.dart";
-import "package:animebox/data/video_url_parsers/streamwish.dart";
+import "package:animebox/data/video_url_parsers/mp4upload.dart";
 import "package:animebox/data/video_url_parsers/streamtape.dart";
+import "package:animebox/data/video_url_parsers/streamwish.dart";
+import "package:animebox/data/video_url_parsers/yourupload.dart";
 
 mixin VideoSourceParameters {
   bool get needsAWebView => false;
+}
+
+class Video {
+  VideoUrlParsers assignedParser;
+  String url;
+  Map<String, String>? headers;
+
+  Video({required this.url, required this.assignedParser, this.headers});
 }
 
 // In this context, a parser is the utility that brings you the content you need to watch a serie chapter,
@@ -31,6 +41,8 @@ class VideoUrlParser {
         return VideoUrlParsers.yourUpload;
       case "stape":
         return VideoUrlParsers.streamTape;
+      case "mp4upload":
+        return VideoUrlParsers.mp4upload;
       default:
         return VideoUrlParsers.none;
     }
@@ -55,6 +67,8 @@ class VideoUrlParser {
         return await StreamTape.getVideoFromUrl(url);
       case VideoUrlParsers.streamWish:
         return await StreamWish.getVideoFromUrl(url);
+      case VideoUrlParsers.mp4upload:
+        return await Mp4upload.getVideoFromUrl(url);
       case VideoUrlParsers.none:
         return null;
     }
@@ -97,6 +111,7 @@ class VideoUrlParser {
       VideoUrlParsers.yourUpload => "yourupload.com",
       VideoUrlParsers.streamTape => "streamtape.com",
       VideoUrlParsers.streamWish => "streamwish.to",
+      VideoUrlParsers.mp4upload => "mp4upload.com",
       VideoUrlParsers.none => Placeholders.emptyString,
     };
   }
