@@ -1,5 +1,5 @@
 import 'package:animebox/core/enums.dart';
-import 'package:animebox/core/logs.dart';
+import 'package:animebox/l10n/animebox_translations.dart';
 import 'package:animebox/presentation/home.dart';
 import 'package:animebox/widgets/themes.dart';
 import 'package:dynamic_color/dynamic_color.dart';
@@ -17,8 +17,22 @@ class AnimeBoxApp extends StatelessWidget {
       builder: (lightDynamic, darkDynamic) {
         ThemePair theme;
 
-        if (themeController.themeId == SupportedThemes.dynamic) {
-          theme = _createDynamicTheme(lightDynamic, darkDynamic);
+        if (themeController.themeId == SupportedThemes.dynamic &&
+            lightDynamic != null &&
+            darkDynamic != null) {
+          theme = ThemePair(
+            light: ThemeData.from(colorScheme: lightDynamic, useMaterial3: true).copyWith(
+              applyElevationOverlayColor: true,
+              navigationBarTheme: NavigationBarThemeData(backgroundColor: lightDynamic.surface),
+            ),
+            dark: ThemeData.from(colorScheme: darkDynamic, useMaterial3: true).copyWith(
+              applyElevationOverlayColor: true,
+
+              navigationBarTheme: NavigationBarThemeData(
+                backgroundColor: Color.lerp(darkDynamic.surface, Colors.white, 0.05),
+              ),
+            ),
+          );
         } else {
           theme =
               AnimeBoxThemes.getThemeById(themeController.themeId) ??
@@ -27,6 +41,8 @@ class AnimeBoxApp extends StatelessWidget {
 
         return MaterialApp(
           title: "Anime Box",
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           debugShowCheckedModeBanner: false,
           home: AnimeBoxHome(),
 
@@ -36,17 +52,5 @@ class AnimeBoxApp extends StatelessWidget {
         );
       },
     );
-  }
-}
-
-ThemePair _createDynamicTheme(ColorScheme? lightColors, ColorScheme? darkColors) {
-  if (lightColors != null && darkColors != null) {
-    return ThemePair(
-      light: ThemeData.from(colorScheme: lightColors, useMaterial3: true),
-      dark: ThemeData.from(colorScheme: darkColors, useMaterial3: true),
-    );
-  } else {
-    logger.w("Using fallback theme as Dynamic Theme couldn't be created");
-    return AnimeBoxThemes.themes[SupportedThemes.fallback]!;
   }
 }
